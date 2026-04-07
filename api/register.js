@@ -62,19 +62,17 @@ module.exports = async (req, res) => {
       return res.status(409).json({ success: false, error: 'El email ya está registrado' });
     }
 
-    // Insertar nuevo usuario
+    const nombreCompleto = `${data.nombre.trim()} ${data.apellido.trim()}`;
+
+    // Insertar nuevo usuario en la tabla usuarios
     const { data: newUser, error: insertError } = await supabase
       .from('usuarios')
       .insert({
-        nombre: data.nombre,
-        apellido: data.apellido,
+        nombre: nombreCompleto,
         email: data.email,
-        telefono: data.telefono,
-        direccion: data.direccion,
         password: data.password,
         rol: data.rol,
-        estado: true,
-        fecha_creacion: new Date().toISOString()
+        estado: true
       })
       .select('id, nombre, email, rol')
       .single();
@@ -82,6 +80,21 @@ module.exports = async (req, res) => {
     if (insertError) {
       console.error('Supabase insert error:', insertError);
       return res.status(500).json({ success: false, error: 'Error al registrar usuario' });
+    }
+
+    if (data.rol === 'Cliente') {
+      const { error: clientError } = await supabase
+        .from('clientes')
+        .insert({
+          usuario_id: newUser.id,
+          telefono: data.telefono,
+          direccion: data.direccion
+        });
+
+      if (clientError) {
+        console.error('Supabase clientes insert error:', clientError);
+        return res.status(500).json({ success: false, error: 'Error al guardar datos de cliente' });
+      }
     }
 
     return res.status(201).json({
