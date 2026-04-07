@@ -84,22 +84,7 @@
                             </div>
                             <div class="card-panel">
                                 <h3>Crear cliente</h3>
-                                <button type="button" class="btn-secondary toggle-form-btn" data-target="cliente-form-panel">Mostrar formulario</button>
-                                <div id="cliente-form-panel" class="form-panel hidden">
-                                    <form id="cliente-form" class="admin-form">
-                                        <div class="input-group"><label for="cliente-nombre">Nombre</label><input id="cliente-nombre" name="nombre" type="text" required></div>
-                                        <div class="input-group"><label for="cliente-apellido">Apellido</label><input id="cliente-apellido" name="apellido" type="text" required></div>
-                                        <div class="input-group"><label for="cliente-email">Correo</label><input id="cliente-email" name="email" type="email" required></div>
-                                        <div class="input-group"><label for="cliente-password">Contraseña</label><input id="cliente-password" name="password" type="password" required></div>
-                                        <div class="input-group"><label for="cliente-empresa">Empresa</label><input id="cliente-empresa" name="empresa" type="text" required></div>
-                                        <div class="input-group"><label for="cliente-telefono">Teléfono</label><input id="cliente-telefono" name="telefono" type="tel"></div>
-                                        <div class="input-group"><label for="cliente-direccion">Dirección</label><input id="cliente-direccion" name="direccion" type="text"></div>
-                                        <div class="input-group"><label for="cliente-ciudad">Ciudad</label><input id="cliente-ciudad" name="ciudad" type="text"></div>
-                                        <div class="input-group"><label for="cliente-pais">País</label><input id="cliente-pais" name="pais" type="text"></div>
-                                        <button type="submit" class="btn-primary">Guardar cliente</button>
-                                        <p id="cliente-form-message" class="form-message"></p>
-                                    </form>
-                                </div>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="cliente">Abrir formulario</button>
                             </div>
                         </div>
                     </div>
@@ -130,26 +115,7 @@
                             </div>
                             <div class="card-panel">
                                 <h3>Agregar equipo</h3>
-                                <button type="button" class="btn-secondary toggle-form-btn" data-target="equipo-form-panel">Mostrar formulario</button>
-                                <div id="equipo-form-panel" class="form-panel hidden">
-                                    <form id="equipo-form" class="admin-form">
-                                        <div class="input-group"><label for="equipo-cliente">Cliente</label><select id="equipo-cliente" required></select></div>
-                                        <div class="input-group"><label for="equipo-marca">Marca</label><input id="equipo-marca" name="marca" type="text" required></div>
-                                        <div class="input-group"><label for="equipo-modelo">Modelo</label><input id="equipo-modelo" name="modelo" type="text" required></div>
-                                        <div class="input-group"><label for="equipo-serial">Serial</label><input id="equipo-serial" name="serial" type="text" required></div>
-                                        <div class="input-group"><label for="equipo-tipo">Tipo</label><select id="equipo-tipo" required>
-                                                <option value="Aire Acondicionado">Aire Acondicionado</option>
-                                                <option value="Ventilación">Ventilación</option>
-                                                <option value="Calefacción">Calefacción</option>
-                                                <option value="Otro">Otro</option>
-                                            </select></div>
-                                        <div class="input-group"><label for="equipo-fecha">Fecha instalación</label><input id="equipo-fecha" name="fecha_instalacion" type="date"></div>
-                                        <div class="input-group"><label for="equipo-ubicacion">Ubicación</label><input id="equipo-ubicacion" name="ubicacion" type="text"></div>
-                                        <div class="input-group"><label for="equipo-estado">Estado</label><select id="equipo-estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option><option value="En Reparación">En Reparación</option></select></div>
-                                        <button type="submit" class="btn-primary">Guardar equipo</button>
-                                        <p id="equipo-form-message" class="form-message"></p>
-                                    </form>
-                                </div>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="equipo">Abrir formulario</button>
                             </div>
                         </div>
                     </div>
@@ -179,19 +145,7 @@
                             </div>
                             <div class="card-panel">
                                 <h3>Agregar técnico</h3>
-                                <button type="button" class="btn-secondary toggle-form-btn" data-target="tecnico-form-panel">Mostrar formulario</button>
-                                <div id="tecnico-form-panel" class="form-panel hidden">
-                                    <form id="tecnico-form" class="admin-form">
-                                        <div class="input-group"><label for="tecnico-nombre">Nombre</label><input id="tecnico-nombre" name="nombre" type="text" required></div>
-                                        <div class="input-group"><label for="tecnico-apellido">Apellido</label><input id="tecnico-apellido" name="apellido" type="text" required></div>
-                                        <div class="input-group"><label for="tecnico-email">Correo</label><input id="tecnico-email" name="email" type="email" required></div>
-                                        <div class="input-group"><label for="tecnico-password">Contraseña</label><input id="tecnico-password" name="password" type="password" required></div>
-                                        <div class="input-group"><label for="tecnico-especialidad">Especialidad</label><input id="tecnico-especialidad" name="especialidad" type="text" required></div>
-                                        <div class="input-group"><label for="tecnico-telefono">Teléfono</label><input id="tecnico-telefono" name="telefono_contacto" type="tel"></div>
-                                        <button type="submit" class="btn-primary">Guardar técnico</button>
-                                        <p id="tecnico-form-message" class="form-message"></p>
-                                    </form>
-                                </div>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="tecnico">Abrir formulario</button>
                             </div>
                         </div>
                     </div>
@@ -222,19 +176,7 @@
                             </div>
                             <div class="card-panel">
                                 <h3>Crear orden</h3>
-                                <button type="button" class="btn-secondary toggle-form-btn" data-target="orden-form-panel">Mostrar formulario</button>
-                                <div id="orden-form-panel" class="form-panel hidden">
-                                    <form id="orden-form" class="admin-form">
-                                        <div class="input-group"><label for="orden-cliente">Cliente</label><select id="orden-cliente" required></select></div>
-                                        <div class="input-group"><label for="orden-equipo">Equipo</label><select id="orden-equipo" required></select></div>
-                                        <div class="input-group"><label for="orden-tecnico">Técnico</label><select id="orden-tecnico" required></select></div>
-                                        <div class="input-group"><label for="orden-tipo">Tipo</label><select id="orden-tipo" required><option value="Preventivo">Preventivo</option><option value="Correctivo">Correctivo</option></select></div>
-                                        <div class="input-group"><label for="orden-descripcion">Descripción</label><textarea id="orden-descripcion" name="descripcion" rows="4" required></textarea></div>
-                                        <div class="input-group"><label for="orden-fecha">Fecha programada</label><input id="orden-fecha" name="fecha_programada" type="date"></div>
-                                        <button type="submit" class="btn-primary">Guardar orden</button>
-                                        <p id="orden-form-message" class="form-message"></p>
-                                    </form>
-                                </div>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="orden">Abrir formulario</button>
                             </div>
                         </div>
                     </div>
@@ -264,22 +206,90 @@
                             </div>
                             <div class="card-panel">
                                 <h3>Crear cotización</h3>
-                                <button type="button" class="btn-secondary toggle-form-btn" data-target="cotizacion-form-panel">Mostrar formulario</button>
-                                <div id="cotizacion-form-panel" class="form-panel hidden">
-                                    <form id="cotizacion-form" class="admin-form">
-                                        <div class="input-group"><label for="cotizacion-cliente">Cliente</label><select id="cotizacion-cliente" required></select></div>
-                                        <div class="input-group"><label for="cotizacion-descripcion">Descripción</label><textarea id="cotizacion-descripcion" name="descripcion" rows="4" required></textarea></div>
-                                        <div class="input-group"><label for="cotizacion-monto">Monto estimado</label><input id="cotizacion-monto" name="monto_estimado" type="number" step="0.01" required></div>
-                                        <button type="submit" class="btn-primary">Guardar cotización</button>
-                                        <p id="cotizacion-form-message" class="form-message"></p>
-                                    </form>
-                                </div>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="cotizacion">Abrir formulario</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
+
+        <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
+        <aside id="form-drawer" class="form-drawer" aria-hidden="true">
+            <div class="drawer-header">
+                <h3 id="drawer-title">Formulario</h3>
+                <button type="button" id="close-drawer" class="btn-secondary">Cerrar</button>
+            </div>
+            <div id="drawer-content" class="drawer-content">
+                <div id="drawer-form-cliente" class="drawer-form" data-title="Crear cliente">
+                    <form id="cliente-form" class="admin-form">
+                        <div class="input-group"><label for="cliente-nombre">Nombre</label><input id="cliente-nombre" name="nombre" type="text" required></div>
+                        <div class="input-group"><label for="cliente-apellido">Apellido</label><input id="cliente-apellido" name="apellido" type="text" required></div>
+                        <div class="input-group"><label for="cliente-email">Correo</label><input id="cliente-email" name="email" type="email" required></div>
+                        <div class="input-group"><label for="cliente-password">Contraseña</label><input id="cliente-password" name="password" type="password" required></div>
+                        <div class="input-group"><label for="cliente-empresa">Empresa</label><input id="cliente-empresa" name="empresa" type="text" required></div>
+                        <div class="input-group"><label for="cliente-telefono">Teléfono</label><input id="cliente-telefono" name="telefono" type="tel"></div>
+                        <div class="input-group"><label for="cliente-direccion">Dirección</label><input id="cliente-direccion" name="direccion" type="text"></div>
+                        <div class="input-group"><label for="cliente-ciudad">Ciudad</label><input id="cliente-ciudad" name="ciudad" type="text"></div>
+                        <div class="input-group"><label for="cliente-pais">País</label><input id="cliente-pais" name="pais" type="text"></div>
+                        <button type="submit" class="btn-primary">Guardar cliente</button>
+                        <p id="cliente-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-equipo" class="drawer-form hidden" data-title="Agregar equipo">
+                    <form id="equipo-form" class="admin-form">
+                        <div class="input-group"><label for="equipo-cliente">Cliente</label><select id="equipo-cliente" required></select></div>
+                        <div class="input-group"><label for="equipo-marca">Marca</label><input id="equipo-marca" name="marca" type="text" required></div>
+                        <div class="input-group"><label for="equipo-modelo">Modelo</label><input id="equipo-modelo" name="modelo" type="text" required></div>
+                        <div class="input-group"><label for="equipo-serial">Serial</label><input id="equipo-serial" name="serial" type="text" required></div>
+                        <div class="input-group"><label for="equipo-tipo">Tipo</label><select id="equipo-tipo" required>
+                                <option value="Aire Acondicionado">Aire Acondicionado</option>
+                                <option value="Ventilación">Ventilación</option>
+                                <option value="Calefacción">Calefacción</option>
+                                <option value="Otro">Otro</option>
+                            </select></div>
+                        <div class="input-group"><label for="equipo-fecha">Fecha instalación</label><input id="equipo-fecha" name="fecha_instalacion" type="date"></div>
+                        <div class="input-group"><label for="equipo-ubicacion">Ubicación</label><input id="equipo-ubicacion" name="ubicacion" type="text"></div>
+                        <div class="input-group"><label for="equipo-estado">Estado</label><select id="equipo-estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option><option value="En Reparación">En Reparación</option></select></div>
+                        <button type="submit" class="btn-primary">Guardar equipo</button>
+                        <p id="equipo-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-tecnico" class="drawer-form hidden" data-title="Agregar técnico">
+                    <form id="tecnico-form" class="admin-form">
+                        <div class="input-group"><label for="tecnico-nombre">Nombre</label><input id="tecnico-nombre" name="nombre" type="text" required></div>
+                        <div class="input-group"><label for="tecnico-apellido">Apellido</label><input id="tecnico-apellido" name="apellido" type="text" required></div>
+                        <div class="input-group"><label for="tecnico-email">Correo</label><input id="tecnico-email" name="email" type="email" required></div>
+                        <div class="input-group"><label for="tecnico-password">Contraseña</label><input id="tecnico-password" name="password" type="password" required></div>
+                        <div class="input-group"><label for="tecnico-especialidad">Especialidad</label><input id="tecnico-especialidad" name="especialidad" type="text" required></div>
+                        <div class="input-group"><label for="tecnico-telefono">Teléfono</label><input id="tecnico-telefono" name="telefono_contacto" type="tel"></div>
+                        <button type="submit" class="btn-primary">Guardar técnico</button>
+                        <p id="tecnico-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-orden" class="drawer-form hidden" data-title="Crear orden">
+                    <form id="orden-form" class="admin-form">
+                        <div class="input-group"><label for="orden-cliente">Cliente</label><select id="orden-cliente" required></select></div>
+                        <div class="input-group"><label for="orden-equipo">Equipo</label><select id="orden-equipo" required></select></div>
+                        <div class="input-group"><label for="orden-tecnico">Técnico</label><select id="orden-tecnico" required></select></div>
+                        <div class="input-group"><label for="orden-tipo">Tipo</label><select id="orden-tipo" required><option value="Preventivo">Preventivo</option><option value="Correctivo">Correctivo</option></select></div>
+                        <div class="input-group"><label for="orden-descripcion">Descripción</label><textarea id="orden-descripcion" name="descripcion" rows="4" required></textarea></div>
+                        <div class="input-group"><label for="orden-fecha">Fecha programada</label><input id="orden-fecha" name="fecha_programada" type="date"></div>
+                        <button type="submit" class="btn-primary">Guardar orden</button>
+                        <p id="orden-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-cotizacion" class="drawer-form hidden" data-title="Crear cotización">
+                    <form id="cotizacion-form" class="admin-form">
+                        <div class="input-group"><label for="cotizacion-cliente">Cliente</label><select id="cotizacion-cliente" required></select></div>
+                        <div class="input-group"><label for="cotizacion-descripcion">Descripción</label><textarea id="cotizacion-descripcion" name="descripcion" rows="4" required></textarea></div>
+                        <div class="input-group"><label for="cotizacion-monto">Monto estimado</label><input id="cotizacion-monto" name="monto_estimado" type="number" step="0.01" required></div>
+                        <button type="submit" class="btn-primary">Guardar cotización</button>
+                        <p id="cotizacion-form-message" class="form-message"></p>
+                    </form>
+                </div>
+            </div>
+        </aside>
 
         <footer>
             <p>&copy; 2026 Proyecto Final ADSO</p>

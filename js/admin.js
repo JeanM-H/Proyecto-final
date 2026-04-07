@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', function () {
         tecnicos: []
     };
 
+    const drawer = document.getElementById('form-drawer');
+    const drawerBackdrop = document.getElementById('drawer-backdrop');
+    const drawerTitle = document.getElementById('drawer-title');
+    const closeDrawerButton = document.getElementById('close-drawer');
+    const drawerForms = document.querySelectorAll('.drawer-form');
+
     function setFormMessage(selector, message, type = '') {
         const element = document.getElementById(selector);
         if (!element) return;
@@ -363,20 +369,45 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function hideAllFormPanels() {
-        document.querySelectorAll('.form-panel').forEach(panel => panel.classList.add('hidden'));
-        document.querySelectorAll('.toggle-form-btn').forEach(button => button.textContent = 'Mostrar formulario');
+    function closeDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('open');
+        drawerBackdrop.classList.remove('open');
+        drawer.setAttribute('aria-hidden', 'true');
     }
 
-    function bindFormToggles() {
-        document.querySelectorAll('.toggle-form-btn').forEach(button => {
+    function openDrawer(formType) {
+        if (!drawer) return;
+        drawerForms.forEach(form => form.classList.remove('active'));
+        const activeForm = document.getElementById(`drawer-form-${formType}`);
+        if (!activeForm) return;
+        activeForm.classList.add('active');
+        drawerTitle.textContent = activeForm.dataset.title || 'Formulario';
+        drawer.classList.add('open');
+        drawerBackdrop.classList.add('open');
+        drawer.setAttribute('aria-hidden', 'false');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function bindFormDrawerButtons() {
+        document.querySelectorAll('.open-drawer-btn').forEach(button => {
             button.addEventListener('click', () => {
-                const targetId = button.dataset.target;
-                const panel = document.getElementById(targetId);
-                if (!panel) return;
-                const isHidden = panel.classList.toggle('hidden');
-                button.textContent = isHidden ? 'Mostrar formulario' : 'Ocultar formulario';
+                openDrawer(button.dataset.form);
             });
+        });
+
+        if (closeDrawerButton) {
+            closeDrawerButton.addEventListener('click', closeDrawer);
+        }
+
+        if (drawerBackdrop) {
+            drawerBackdrop.addEventListener('click', closeDrawer);
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeDrawer();
+            }
         });
     }
 
@@ -390,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tab.classList.toggle('active', `admin-${tab.dataset.section}` === sectionId);
         });
 
-        hideAllFormPanels();
+        closeDrawer();
     }
 
     adminTabs.forEach(tab => {
@@ -421,6 +452,6 @@ document.addEventListener('DOMContentLoaded', function () {
     fetchEquipos();
     fetchTecnicos();
     bindForms();
-    bindFormToggles();
+    bindFormDrawerButtons();
     showAdminSection('admin-dashboard');
 });
