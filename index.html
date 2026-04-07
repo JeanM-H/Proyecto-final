@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Final ADSO</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-mark">ADSO</span>
+                <h1>Proyecto Final</h1>
+            </div>
+            <nav>
+                <a href="#help">Ayuda</a>
+                <a href="#contact">Contacto</a>
+            </nav>
+        </header>
+
+        <main id="content">
+            <section class="login-page">
+                <div class="login-panel">
+                    <div class="login-card">
+                        <div class="card-header">
+                            <h2>Bienvenido</h2>
+                            <p>Ingresa tus datos para acceder al panel.</p>
+                        </div>
+                        <form id="login-form">
+                            <div class="input-group">
+                                <label for="email">Correo electrónico</label>
+                                <input type="email" id="email" name="email" placeholder="tucorreo@dominio.com" required>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="password">Contraseña</label>
+                                <input type="password" id="password" name="password" placeholder="********" required minlength="6">
+                            </div>
+
+                            <div class="input-group role-selection">
+                                <span>Rol</span>
+                                <label><input type="radio" name="role" value="Administrador" checked> Administrador</label>
+                                <label><input type="radio" name="role" value="Técnico"> Técnico</label>
+                                <label><input type="radio" name="role" value="Cliente"> Cliente</label>
+                            </div>
+
+                            <button type="submit" class="btn-primary">Iniciar sesión</button>
+                            <p class="helper-text"><a href="#">¿Olvidaste tu contraseña?</a></p>
+                        </form>
+
+                        <div id="login-message" class="login-message" aria-live="polite"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="home" class="app-content hidden">
+                <div class="welcome-card">
+                    <h2>¡Bienvenido!</h2>
+                    <p>Has iniciado sesión correctamente. Aquí aparecerá el contenido principal de la aplicación.</p>
+                    <button id="logout-btn" class="btn-secondary">Cerrar sesión</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Proyecto Final ADSO</p>
+        </footer>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
