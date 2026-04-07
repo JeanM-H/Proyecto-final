@@ -1,1 +1,20 @@
-// ConexiÃ³n a la base de datos MySQL\nconst mysql = require('mysql2/promise');\nrequire('dotenv').config();\n\nconst pool = mysql.createPool({\n    host: process.env.DB_HOST || 'localhost',\n    user: process.env.DB_USER || 'root',\n    password: process.env.DB_PASSWORD || '',\n    database: process.env.DB_NAME || 'climatizacion_db',\n    port: process.env.DB_PORT || 3306,\n    waitForConnections: true,\n    connectionLimit: 10,\n    queueLimit: 0\n});\n\nmodule.exports = pool;\n
+// Conexión a la base de datos MySQL
+const mysql = require('mysql2/promise');
+require('dotenv').config();
+
+const poolConfig = process.env.MYSQL_URL
+    ? process.env.MYSQL_URL
+    : {
+          host: process.env.DB_HOST || 'localhost',
+          user: process.env.DB_USER || 'root',
+          password: process.env.DB_PASSWORD || '',
+          database: process.env.DB_NAME || 'climatizacion_db',
+          port: process.env.DB_PORT || 3306,
+          waitForConnections: true,
+          connectionLimit: 10,
+          queueLimit: 0,
+      };
+
+const pool = mysql.createPool(poolConfig);
+
+module.exports = pool;
