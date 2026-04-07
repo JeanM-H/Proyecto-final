@@ -1,53 +1,214 @@
-const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 const path = require('path');
 
-// Conexión a SQLite
-const dbPath = path.join(__dirname, '..', 'database.db');
-const db = new sqlite3.Database(dbPath);
+// Archivo de base de datos JSON
+const dbPath = path.join(__dirname, '..', 'database.json');
 
-// Inicializar base de datos
-function initDatabase() {
-  return new Promise((resolve, reject) => {
-    db.serialize(() => {
-      // Crear tablas
-      db.run(`CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        nombre TEXT NOT NULL,
-        rol TEXT NOT NULL CHECK(rol IN ('Administrador', 'Técnico', 'Cliente')),
-        estado INTEGER DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )`);
+// Datos iniciales
+const initialData = {
+  usuarios: [
+    {
+      id: 1,
+      email: 'admin@climatizacion.com',
+      password: 'Admin123',
+      nombre: 'Juan Administrador',
+      rol: 'Administrador',
+      estado: 1,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      email: 'tecnico@climatizacion.com',
+      password: 'Tecnico123',
+      nombre: 'Carlos Técnico',
+      rol: 'Técnico',
+      estado: 1,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      email: 'cliente@example.com',
+      password: 'Cliente123',
+      nombre: 'María Cliente',
+      rol: 'Cliente',
+      estado: 1,
+      created_at: new Date().toISOString()
+    }
+  ],
+  clientes: [
+    {
+      id: 1,
+      usuario_id: 3,
+      empresa: 'Empresa Ejemplo S.A.',
+      telefono: '3001234567',
+      direccion: 'Calle 123 #45-67',
+      ciudad: 'Bogotá',
+      pais: 'Colombia',
+      created_at: new Date().toISOString()
+    }
+  ],
+  tecnicos: [
+    {
+      id: 1,
+      usuario_id: 2,
+      especialidad: 'Climatización Industrial',
+      disponible: 1,
+      telefono_contacto: '3019876543',
+      created_at: new Date().toISOString()
+    }
+  ],
+  equipos_climatizacion: [
+    {
+      id: 1,
+      cliente_id: 1,
+      marca: 'Samsung',
+      modelo: 'AC-2000',
+      serial: 'SN123456789',
+      tipo: 'Aire Acondicionado',
+      fecha_instalacion: '2023-06-15',
+      ubicacion: 'Oficina Principal - Piso 2',
+      estado: 'Activo',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      cliente_id: 1,
+      marca: 'LG',
+      modelo: 'HVAC-5000',
+      serial: 'SN987654321',
+      tipo: 'Ventilación',
+      fecha_instalacion: '2024-01-20',
+      ubicacion: 'Sala de Servidores',
+      estado: 'Activo',
+      created_at: new Date().toISOString()
+    }
+  ],
+  ordenes_mantenimiento: [
+    {
+      id: 1,
+      cliente_id: 1,
+      equipo_id: 1,
+      tecnico_id: 1,
+      tipo: 'Preventivo',
+      descripcion: 'Mantenimiento preventivo mensual - Limpieza de filtros y verificación de funcionamiento',
+      estado: 'Pendiente',
+      fecha_programada: '2026-04-15 09:00:00',
+      prioridad: 'Media',
+      created_at: new Date().toISOString()
+    }
+  ]
+};
 
-      db.run(`CREATE TABLE IF NOT EXISTS clientes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        usuario_id INTEGER UNIQUE,
-        empresa TEXT,
-        telefono TEXT,
-        direccion TEXT,
-        ciudad TEXT,
-        pais TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-      )`);
+// Función para leer datos
+function readData() {
+  try {
+    if (fs.existsSync(dbPath)) {
+      const data = fs.readFileSync(dbPath, 'utf-8');
+      return JSON.parse(data);
+    } else {
+      // Crear archivo con datos iniciales
+      fs.writeFileSync(dbPath, JSON.stringify(initialData, null, 2));
+      return initialData;
+    }
+  } catch (error) {
+    console.error('Error leyendo datos:', error);
+    return initialData;
+  }
+}
 
-      db.run(`CREATE TABLE IF NOT EXISTS tecnicos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        usuario_id INTEGER UNIQUE,
-        especialidad TEXT,
-        disponible INTEGER DEFAULT 1,
-        telefono_contacto TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-      )`);
+// Función para guardar datos
+function saveData(data) {
+  try {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('Error guardando datos:', error);
+  }
+}
 
-      db.run(`CREATE TABLE IF NOT EXISTS equipos_climatizacion (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        cliente_id INTEGER,
-        marca TEXT,
-        modelo TEXT,
+module.exports = async (req, res) => {
+  const url = require('url');
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  // API: Health check
+  if (pathname === '/api/health') {
+    return res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+  }
+
+  // API: Info
+  if (pathname === '/api') {
+    return res.status(200).json({
+      mensaje: 'API de Climatización - Sistema de Mantenimiento',
+      version: '1.0.0',
+      status: 'OK'
+    });
+  }
+
+  // API: Login
+  if (pathname === '/api/login' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+
+        if (!data.email || !data.password || !data.role) {
+          return res.status(400).json({ success: false, message: 'Datos incompletos' });
+        }
+
+        const db = readData();
+        const user = db.usuarios.find(u =>
+          u.email === data.email &&
+          u.rol === data.role &&
+          u.estado === 1
+        );
+
+        if (!user) {
+          return res.status(401).json({ success: false, message: 'Usuario no encontrado o rol incorrecto' });
+        }
+
+        // Por ahora aceptamos cualquier contraseña (sin hash)
+        return res.status(200).json({
+          success: true,
+          message: 'Login exitoso',
+          user: {
+            id: user.id,
+            nombre: user.nombre,
+            email: user.email,
+            rol: user.rol
+          }
+        });
+
+      } catch (error) {
+        console.error('Error en login:', error);
+        return res.status(500).json({ success: false, message: 'Error en servidor' });
+      }
+    });
+    return;
+  }
+
+  // Servir index.html para todas las otras rutas
+  try {
+    const filePath = path.join(__dirname, '..', 'index.html');
+    const html = fs.readFileSync(filePath, 'utf-8');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.status(200).send(html);
+  } catch (err) {
+    res.status(200).json({ status: 'OK' });
+  }
+};
         serial TEXT UNIQUE,
         tipo TEXT,
         fecha_instalacion DATE,
