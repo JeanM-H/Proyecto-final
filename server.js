@@ -6,6 +6,8 @@ const server = http.createServer((req, res) => {
   res.end('OK');
 });
 
-server.listen(port, '0.0.0.0', () => {
+server.listen(port, () => {
   console.log('Server listening on port ' + port);
 });
+
+module.exports = server;
