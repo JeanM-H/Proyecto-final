@@ -1,32 +1,102 @@
 const supabase = require('./supabaseClient');
 
+function parseJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(body || '{}'));
+      } catch (error) {
+        reject(error);
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ success: false, message: 'Método no permitido' });
-  }
+  if (req.method === 'GET') {
+    try {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at')
+        .order('id', { ascending: true });
 
-  try {
-    const { data, error } = await supabase
-      .from('clientes')
-      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at')
-      .order('id', { ascending: true });
+      if (error) {
+        console.error('Error clientes:', error);
+        return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
+      }
 
-    if (error) {
+      return res.status(200).json({ success: true, clientes: data || [] });
+    } catch (error) {
       console.error('Error clientes:', error);
       return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
     }
-
-    return res.status(200).json({ success: true, clientes: data || [] });
-  } catch (error) {
-    console.error('Error clientes:', error);
-    return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
   }
+
+  if (req.method === 'POST') {
+    try {
+      const data = await parseJsonBody(req);
+      const { nombre, apellido, email, password, empresa, telefono, direccion, ciudad, pais } = data;
+
+      if (!nombre || !apellido || !email || !password || !empresa) {
+        return res.status(400).json({ success: false, message: 'Datos incompletos para crear el cliente' });
+      }
+
+      const { data: existingUser, error: checkError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error verificando email cliente:', checkError);
+        return res.status(500).json({ success: false, message: 'Error en servidor' });
+      }
+
+      if (existingUser) {
+        return res.status(409).json({ success: false, message: 'El email ya está registrado' });
+      }
+
+      const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`;
+      const { data: usuario, error: insertUserError } = await supabase
+        .from('usuarios')
+        .insert({ nombre: nombreCompleto, email, password, rol: 'Cliente', estado: true })
+        .select('id')
+        .single();
+
+      if (insertUserError) {
+        console.error('Error creando usuario cliente:', insertUserError);
+        return res.status(500).json({ success: false, message: 'Error al crear el cliente' });
+      }
+
+      const { data: cliente, error: insertClienteError } = await supabase
+        .from('clientes')
+        .insert({ usuario_id: usuario.id, empresa, telefono, direccion, ciudad, pais })
+        .single();
+
+      if (insertClienteError) {
+        console.error('Error creando cliente:', insertClienteError);
+        return res.status(500).json({ success: false, message: 'Error al crear el cliente' });
+      }
+
+      return res.status(201).json({ success: true, cliente });
+    } catch (error) {
+      console.error('Error clientes POST:', error);
+      return res.status(500).json({ success: false, message: 'Error al crear clientes' });
+    }
+  }
+
+  return res.status(405).json({ success: false, message: 'Método no permitido' });
 };

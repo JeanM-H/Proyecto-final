@@ -21,6 +21,7 @@ module.exports = async (req, res) => {
       { name: 'equipos_climatizacion', key: 'equipos' },
       { name: 'tecnicos', key: 'tecnicos' },
       { name: 'ordenes_mantenimiento', key: 'ordenes' },
+      { name: 'cotizaciones', key: 'cotizaciones' },
       { name: 'usuarios', key: 'usuarios' }
     ];
 

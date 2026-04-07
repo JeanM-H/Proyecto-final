@@ -490,6 +490,62 @@ main {
     background: rgba(255, 255, 255, 0.06);
 }
 
+.section-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 1.8fr) minmax(280px, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    margin-top: 1.5rem;
+}
+
+.admin-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.admin-form .input-group {
+    margin-bottom: 0;
+}
+
+.admin-form select,
+.admin-form textarea {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    font-size: 1rem;
+    color: #0f172a;
+    background: #f8fbff;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.admin-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.admin-form select:focus,
+.admin-form textarea:focus {
+    border-color: #5c7cfa;
+    box-shadow: 0 0 0 5px rgba(92, 124, 250, 0.12);
+    background: #ffffff;
+}
+
+.form-message {
+    min-height: 1.4rem;
+    font-size: 0.95rem;
+    color: #cbd5e1;
+}
+
+.form-message.success {
+    color: #16a34a;
+}
+
+.form-message.error {
+    color: #f87171;
+}
+
 footer {
     text-align: center;
     color: #cbd5e1;
