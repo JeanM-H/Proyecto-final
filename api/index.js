@@ -1,23 +1,107 @@
-const mysql = require('mysql2/promise');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'climatizacion_db',
-  port: process.env.DB_PORT || 3306,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-};
+// Conexión a SQLite
+const dbPath = path.join(__dirname, '..', 'database.db');
+const db = new sqlite3.Database(dbPath);
 
-async function getConnection() {
-  try {
-    const connection = await mysql.createConnection(dbConfig);
-    return connection;
-  } catch (error) {
-    console.error('Error conectando a MySQL:', error);
-    throw error;
-  }
+// Inicializar base de datos
+function initDatabase() {
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      // Crear tablas
+      db.run(`CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        nombre TEXT NOT NULL,
+        rol TEXT NOT NULL CHECK(rol IN ('Administrador', 'Técnico', 'Cliente')),
+        estado INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`);
+
+      db.run(`CREATE TABLE IF NOT EXISTS clientes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario_id INTEGER UNIQUE,
+        empresa TEXT,
+        telefono TEXT,
+        direccion TEXT,
+        ciudad TEXT,
+        pais TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+      )`);
+
+      db.run(`CREATE TABLE IF NOT EXISTS tecnicos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario_id INTEGER UNIQUE,
+        especialidad TEXT,
+        disponible INTEGER DEFAULT 1,
+        telefono_contacto TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+      )`);
+
+      db.run(`CREATE TABLE IF NOT EXISTS equipos_climatizacion (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cliente_id INTEGER,
+        marca TEXT,
+        modelo TEXT,
+        serial TEXT UNIQUE,
+        tipo TEXT,
+        fecha_instalacion DATE,
+        ubicacion TEXT,
+        estado TEXT DEFAULT 'Activo' CHECK(estado IN ('Activo', 'Inactivo', 'Mantenimiento')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+      )`);
+
+      db.run(`CREATE TABLE IF NOT EXISTS ordenes_mantenimiento (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cliente_id INTEGER,
+        equipo_id INTEGER,
+        tecnico_id INTEGER,
+        tipo TEXT NOT NULL CHECK(tipo IN ('Preventivo', 'Correctivo', 'Instalación')),
+        descripcion TEXT,
+        estado TEXT DEFAULT 'Pendiente' CHECK(estado IN ('Pendiente', 'En Progreso', 'Completado', 'Cancelado')),
+        fecha_programada DATETIME,
+        fecha_completada DATETIME,
+        prioridad TEXT DEFAULT 'Media' CHECK(prioridad IN ('Baja', 'Media', 'Alta', 'Urgente')),
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+        FOREIGN KEY (equipo_id) REFERENCES equipos_climatizacion(id),
+        FOREIGN KEY (tecnico_id) REFERENCES tecnicos(id)
+      )`);
+
+      // Insertar datos de prueba si no existen
+      db.get("SELECT COUNT(*) as count FROM usuarios", (err, row) => {
+        if (!row || row.count === 0) {
+          // Insertar usuarios de prueba
+          db.run(`INSERT INTO usuarios (email, password, nombre, rol) VALUES
+            ('admin@climatizacion.com', 'Admin123', 'Juan Administrador', 'Administrador'),
+            ('tecnico@climatizacion.com', 'Tecnico123', 'Carlos Técnico', 'Técnico'),
+            ('cliente@example.com', 'Cliente123', 'María Cliente', 'Cliente')`);
+
+          // Insertar datos relacionados
+          db.run(`INSERT INTO clientes (usuario_id, empresa, telefono, direccion, ciudad, pais) VALUES
+            (3, 'Empresa Ejemplo S.A.', '3001234567', 'Calle 123 #45-67', 'Bogotá', 'Colombia')`);
+
+          db.run(`INSERT INTO tecnicos (usuario_id, especialidad, disponible, telefono_contacto) VALUES
+            (2, 'Climatización Industrial', 1, '3019876543')`);
+
+          db.run(`INSERT INTO equipos_climatizacion (cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado) VALUES
+            (1, 'Samsung', 'AC-2000', 'SN123456789', 'Aire Acondicionado', '2023-06-15', 'Oficina Principal - Piso 2', 'Activo'),
+            (1, 'LG', 'HVAC-5000', 'SN987654321', 'Ventilación', '2024-01-20', 'Sala de Servidores', 'Activo')`);
+        }
+        resolve();
+      });
+    });
+  });
 }
+
+// Inicializar BD al cargar
+initDatabase().catch(console.error);
 
 module.exports = async (req, res) => {
   const url = require('url');
@@ -39,48 +123,13 @@ module.exports = async (req, res) => {
     return res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
   }
 
-// API: Inicializar BD
-  if (pathname === '/api/init-db' && req.method === 'POST') {
-    try {
-      const connection = await getConnection();
-
-      // Crear tablas
-      const fs = require('fs');
-      const path = require('path');
-      const schemaPath = path.join(__dirname, '..', 'database', 'create_tables.sql');
-      const schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
-
-      // Ejecutar cada statement por separado
-      const statements = schemaSQL.split(';').filter(stmt => stmt.trim().length > 0);
-
-      for (const statement of statements) {
-        if (statement.trim()) {
-          await connection.execute(statement);
-        }
-      }
-
-      // Insertar datos de prueba
-      const seedPath = path.join(__dirname, '..', 'database', 'insert_test_data.sql');
-      const seedSQL = fs.readFileSync(seedPath, 'utf-8');
-      const seedStatements = seedSQL.split(';').filter(stmt => stmt.trim().length > 0);
-
-      for (const statement of seedStatements) {
-        if (statement.trim() && !statement.includes('SELECT')) {
-          await connection.execute(statement);
-        }
-      }
-
-      await connection.end();
-
-      return res.status(200).json({
-        success: true,
-        message: 'Base de datos inicializada correctamente'
-      });
-
-    } catch (error) {
-      console.error('Error inicializando BD:', error);
-      return res.status(500).json({ success: false, message: 'Error inicializando BD: ' + error.message });
-    }
+  // API: Info
+  if (pathname === '/api') {
+    return res.status(200).json({
+      mensaje: 'API de Climatización - Sistema de Mantenimiento',
+      version: '1.0.0',
+      status: 'OK'
+    });
   }
 
   // API: Login
@@ -97,34 +146,33 @@ module.exports = async (req, res) => {
           return res.status(400).json({ success: false, message: 'Datos incompletos' });
         }
 
-        const connection = await getConnection();
+        // Verificar usuario en SQLite
+        db.get(
+          'SELECT id, nombre, rol FROM usuarios WHERE email = ? AND rol = ? AND estado = 1',
+          [data.email, data.role],
+          (err, user) => {
+            if (err) {
+              console.error('Error en consulta:', err);
+              return res.status(500).json({ success: false, message: 'Error en servidor' });
+            }
 
-        // Verificar usuario
-        const [rows] = await connection.execute(
-          'SELECT id, nombre, rol, estado FROM usuarios WHERE email = ? AND rol = ? AND estado = 1',
-          [data.email, data.role]
-        );
+            if (!user) {
+              return res.status(401).json({ success: false, message: 'Usuario no encontrado o rol incorrecto' });
+            }
 
-        await connection.end();
-
-        if (rows.length === 0) {
-          return res.status(401).json({ success: false, message: 'Usuario no encontrado o rol incorrecto' });
-        }
-
-        const user = rows[0];
-
-        // Por ahora aceptamos cualquier contraseña (sin hash)
-        // TODO: Implementar bcrypt para verificar contraseña hasheada
-        return res.status(200).json({
-          success: true,
-          message: 'Login exitoso',
-          user: {
-            id: user.id,
-            nombre: user.nombre,
-            email: data.email,
-            rol: user.rol
+            // Por ahora aceptamos cualquier contraseña (sin hash)
+            return res.status(200).json({
+              success: true,
+              message: 'Login exitoso',
+              user: {
+                id: user.id,
+                nombre: user.nombre,
+                email: data.email,
+                rol: user.rol
+              }
+            });
           }
-        });
+        );
 
       } catch (error) {
         console.error('Error en login:', error);
@@ -137,7 +185,6 @@ module.exports = async (req, res) => {
   // Servir index.html para todas las otras rutas
   try {
     const fs = require('fs');
-    const path = require('path');
     const filePath = path.join(__dirname, '..', 'index.html');
     const html = fs.readFileSync(filePath, 'utf-8');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
