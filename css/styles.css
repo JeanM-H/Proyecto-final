@@ -294,6 +294,36 @@ main {
     font-weight: 600;
 }
 
+.register-panel {
+    display: grid;
+    place-items: center;
+    width: 100%;
+}
+
+.register-card {
+    padding: 2.25rem;
+    background: #ffffff;
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.14);
+    color: #102a43;
+    border-radius: 28px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.message {
+    margin-top: 1rem;
+    min-height: 1.5rem;
+    font-weight: 600;
+}
+
+.message.error {
+    color: #dc2626;
+}
+
+.message.success {
+    color: #16a34a;
+}
+
 .hidden {
     display: none !important;
 }
