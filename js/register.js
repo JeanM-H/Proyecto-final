@@ -6,8 +6,8 @@ document.getElementById('register-form').addEventListener('submit', async functi
     const email = document.getElementById('email').value.trim();
     const telefono = document.getElementById('telefono').value.trim();
     const direccion = document.getElementById('direccion').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirm-password').value;
+    const password = document.getElementById('password').value.trim();
+    const confirmPassword = document.getElementById('confirm-password').value.trim();
 
     const messageDiv = document.getElementById('message');
     messageDiv.textContent = '';

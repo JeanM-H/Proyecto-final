@@ -58,7 +58,10 @@ module.exports = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error en servidor' });
     }
 
-    if (!user || user.estado !== true || user.password !== data.password) {
+    const enteredPassword = data.password.toString().trim();
+    const storedPassword = user && typeof user.password === 'string' ? user.password.trim() : '';
+
+    if (!user || user.estado !== true || storedPassword !== enteredPassword) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado, contraseña inválida o rol incorrecto' });
     }
 
