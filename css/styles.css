@@ -598,3 +598,5 @@ footer {
         font-size: 0.96rem;
     }
 }
+
+/* Deployment refresh comment: force Vercel to pick up latest styles */
