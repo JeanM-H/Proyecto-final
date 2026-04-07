@@ -1,31 +1,11 @@
-const http = require("http");
-
-const PORT = process.env.PORT || 3000;
+const http = require('http');
+const port = process.env.PORT || 3000;
 
 const server = http.createServer((req, res) => {
-    res.setHeader("Content-Type", "application/json");
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    
-    if (req.url === "/health" || req.url === "/" || req.url === "/api") {
-        res.writeHead(200);
-        res.end(JSON.stringify({
-            status: "OK",
-            uptime: process.uptime()
-        }));
-    } else {
-        res.writeHead(404);
-        res.end(JSON.stringify({ error: "Not found" }));
-    }
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('OK');
 });
 
-server.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
-});
-
-process.on("uncaughtException", (err) => {
-    console.error("Error:", err);
-});
-
-process.on("unhandledRejection", (reason) => {
-    console.error("Rejection:", reason);
+server.listen(port, '0.0.0.0', () => {
+  console.log('Server listening on port ' + port);
 });
