@@ -6,6 +6,9 @@ document.getElementById('register-form').addEventListener('submit', async functi
     const email = document.getElementById('email').value.trim();
     const telefono = document.getElementById('telefono').value.trim();
     const direccion = document.getElementById('direccion').value.trim();
+    const ciudad = document.getElementById('ciudad').value.trim();
+    const pais = document.getElementById('pais').value.trim();
+    const empresa = document.getElementById('empresa').value.trim();
     const password = document.getElementById('password').value.trim();
     const confirmPassword = document.getElementById('confirm-password').value.trim();
 
@@ -38,6 +41,9 @@ document.getElementById('register-form').addEventListener('submit', async functi
                 email,
                 telefono: telefono || null,
                 direccion: direccion || null,
+                ciudad: ciudad || null,
+                pais: pais || null,
+                empresa: empresa || null,
                 password,
                 rol: 'Cliente'
             }),

@@ -47,6 +47,10 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Datos incompletos' });
     }
 
+    if (data.rol === 'Cliente' && !data.empresa) {
+      return res.status(400).json({ success: false, error: 'La empresa es requerida para clientes' });
+    }
+
     // Verificar si el email ya existe
     const { data: existingUser, error: checkError } = await supabase
       .from('usuarios')
@@ -72,18 +76,32 @@ module.exports = async (req, res) => {
     const hashedPassword = await bcrypt.hash(data.password.toString().trim(), 10);
 
     // Insertar nuevo usuario en la tabla usuarios
-    const { data: newUser, error: insertError } = await supabase
+    const userPayload = {
+      nombre: nombreCompleto,
+      email: data.email,
+      password: hashedPassword,
+      rol: data.rol,
+      estado: true,
+      needs_password_change: false
+    };
+
+    let newUser;
+    let insertError;
+
+    ({ data: newUser, error: insertError } = await supabase
       .from('usuarios')
-      .insert({
-        nombre: nombreCompleto,
-        email: data.email,
-        password: hashedPassword,
-        rol: data.rol,
-        estado: true,
-        needs_password_change: false
-      })
+      .insert(userPayload)
       .select('id, nombre, email, rol')
-      .single();
+      .single());
+
+    if (insertError && insertError.message && insertError.message.includes('needs_password_change')) {
+      delete userPayload.needs_password_change;
+      ({ data: newUser, error: insertError } = await supabase
+        .from('usuarios')
+        .insert(userPayload)
+        .select('id, nombre, email, rol')
+        .single());
+    }
 
     if (insertError) {
       console.error('Supabase insert error:', insertError);
@@ -95,8 +113,11 @@ module.exports = async (req, res) => {
         .from('clientes')
         .insert({
           usuario_id: newUser.id,
+          empresa: data.empresa || null,
           telefono: data.telefono || null,
-          direccion: data.direccion || null
+          direccion: data.direccion || null,
+          ciudad: data.ciudad || null,
+          pais: data.pais || null
         });
 
       if (clientError) {

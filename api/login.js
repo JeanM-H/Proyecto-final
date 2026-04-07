@@ -47,12 +47,23 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Datos incompletos' });
     }
 
-    const { data: user, error } = await supabase
+    let userResult = await supabase
       .from('usuarios')
       .select('id, nombre, email, rol, password, estado, needs_password_change')
       .eq('email', data.email)
       .eq('rol', data.role)
       .maybeSingle();
+
+    if (userResult.error && userResult.error.message && userResult.error.message.includes('needs_password_change')) {
+      userResult = await supabase
+        .from('usuarios')
+        .select('id, nombre, email, rol, password, estado')
+        .eq('email', data.email)
+        .eq('rol', data.role)
+        .maybeSingle();
+    }
+
+    const { data: user, error } = userResult;
 
     if (error) {
       console.error('Supabase error:', error);

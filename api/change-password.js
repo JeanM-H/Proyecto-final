@@ -65,13 +65,22 @@ module.exports = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword.toString(), 10);
-    const { error: updateError } = await supabase
+    let updatePayload = { password: hashedPassword, needs_password_change: false };
+    let updateResult = await supabase
       .from('usuarios')
-      .update({ password: hashedPassword, needs_password_change: false })
+      .update(updatePayload)
       .eq('id', user.id);
 
-    if (updateError) {
-      console.error('Error al actualizar contraseña:', updateError);
+    if (updateResult.error && updateResult.error.message && updateResult.error.message.includes('needs_password_change')) {
+      delete updatePayload.needs_password_change;
+      updateResult = await supabase
+        .from('usuarios')
+        .update(updatePayload)
+        .eq('id', user.id);
+    }
+
+    if (updateResult.error) {
+      console.error('Error al actualizar contraseña:', updateResult.error);
       return res.status(500).json({ success: false, message: 'Error al actualizar la contraseña' });
     }
 
