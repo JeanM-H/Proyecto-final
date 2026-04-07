@@ -36,8 +36,8 @@ document.getElementById('register-form').addEventListener('submit', async functi
                 nombre,
                 apellido,
                 email,
-                telefono,
-                direccion,
+                telefono: telefono || null,
+                direccion: direccion || null,
                 password,
                 rol: 'Cliente'
             }),

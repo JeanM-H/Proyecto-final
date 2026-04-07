@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
   try {
     const data = await parseJsonBody(req);
 
-    if (!data.nombre || !data.apellido || !data.email || !data.telefono || !data.direccion || !data.password || !data.rol) {
+    if (!data.nombre || !data.apellido || !data.email || !data.password || !data.rol) {
       return res.status(400).json({ success: false, error: 'Datos incompletos' });
     }
 
@@ -95,8 +95,8 @@ module.exports = async (req, res) => {
         .from('clientes')
         .insert({
           usuario_id: newUser.id,
-          telefono: data.telefono,
-          direccion: data.direccion
+          telefono: data.telefono || null,
+          direccion: data.direccion || null
         });
 
       if (clientError) {
