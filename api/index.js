@@ -1,8 +1,26 @@
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
+const mysql = require('mysql2/promise');
+
+const dbConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'climatizacion_db',
+  port: process.env.DB_PORT || 3306,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+};
+
+async function getConnection() {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    return connection;
+  } catch (error) {
+    console.error('Error conectando a MySQL:', error);
+    throw error;
+  }
+}
 
 module.exports = async (req, res) => {
+  const url = require('url');
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
@@ -23,7 +41,7 @@ module.exports = async (req, res) => {
 
   // API: Info
   if (pathname === '/api') {
-    return res.status(200).json({ 
+    return res.status(200).json({
       mensaje: 'API de Climatización - Sistema de Mantenimiento',
       version: '1.0.0',
       status: 'OK'
@@ -36,23 +54,46 @@ module.exports = async (req, res) => {
     req.on('data', chunk => {
       body += chunk.toString();
     });
-    req.on('end', () => {
+    req.on('end', async () => {
       try {
         const data = JSON.parse(body);
-        // Por ahora, aceptamos cualquier email/password (sin BD)
-        if (data.email && data.password && data.role) {
-          return res.status(200).json({ 
-            success: true, 
-            message: 'Login exitoso',
-            user: {
-              email: data.email,
-              role: data.role
-            }
-          });
+
+        if (!data.email || !data.password || !data.role) {
+          return res.status(400).json({ success: false, message: 'Datos incompletos' });
         }
-        res.status(400).json({ success: false, message: 'Datos incompletos' });
-      } catch (e) {
-        res.status(500).json({ success: false, message: 'Error en servidor' });
+
+        const connection = await getConnection();
+
+        // Verificar usuario
+        const [rows] = await connection.execute(
+          'SELECT id, nombre, rol, estado FROM usuarios WHERE email = ? AND rol = ? AND estado = 1',
+          [data.email, data.role]
+        );
+
+        await connection.end();
+
+        if (rows.length === 0) {
+          return res.status(401).json({ success: false, message: 'Usuario no encontrado o rol incorrecto' });
+        }
+
+        const user = rows[0];
+
+        // Por ahora aceptamos cualquier contraseña (sin hash)
+        // TODO: Implementar bcrypt para verificar contraseña hasheada
+        return res.status(200).json({
+          success: true,
+          message: 'Login exitoso',
+          user: {
+            id: user.id,
+            nombre: user.nombre,
+            email: data.email,
+            rol: user.rol
+          }
+        });
+
+      } catch (error) {
+        console.error('Error en login:', error);
+        return res.status(500).json({ success: false, message: 'Error en servidor' });
       }
     });
     return;
@@ -60,6 +101,8 @@ module.exports = async (req, res) => {
 
   // Servir index.html para todas las otras rutas
   try {
+    const fs = require('fs');
+    const path = require('path');
     const filePath = path.join(__dirname, '..', 'index.html');
     const html = fs.readFileSync(filePath, 'utf-8');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');

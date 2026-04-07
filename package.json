@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node server.js"
   },
+  "dependencies": {
+    "mysql2": "^3.6.5"
+  },
   "author": "ADSO",
   "license": "ISC"
 }
