@@ -196,6 +196,22 @@ main {
     line-height: 1.7;
 }
 
+.auth-form {
+    display: grid;
+    gap: 1.1rem;
+}
+
+.form-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+@media (min-width: 720px) {
+    .form-grid.columns-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .input-group {
     margin-bottom: 1.25rem;
     display: flex;
