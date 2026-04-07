@@ -363,6 +363,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function hideAllFormPanels() {
+        document.querySelectorAll('.form-panel').forEach(panel => panel.classList.add('hidden'));
+        document.querySelectorAll('.toggle-form-btn').forEach(button => button.textContent = 'Mostrar formulario');
+    }
+
+    function bindFormToggles() {
+        document.querySelectorAll('.toggle-form-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.dataset.target;
+                const panel = document.getElementById(targetId);
+                if (!panel) return;
+                const isHidden = panel.classList.toggle('hidden');
+                button.textContent = isHidden ? 'Mostrar formulario' : 'Ocultar formulario';
+            });
+        });
+    }
+
+    function showAdminSection(sectionId) {
+        const sections = document.querySelectorAll('.admin-section');
+        sections.forEach(section => {
+            section.classList.toggle('hidden', section.id !== sectionId);
+        });
+
+        adminTabs.forEach(tab => {
+            tab.classList.toggle('active', `admin-${tab.dataset.section}` === sectionId);
+        });
+
+        hideAllFormPanels();
+    }
+
     adminTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const sectionId = `admin-${tab.dataset.section}`;
@@ -391,5 +421,6 @@ document.addEventListener('DOMContentLoaded', function () {
     fetchEquipos();
     fetchTecnicos();
     bindForms();
+    bindFormToggles();
     showAdminSection('admin-dashboard');
 });

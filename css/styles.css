@@ -304,6 +304,29 @@ main {
     color: #334155;
 }
 
+.toggle-form-btn {
+    width: 100%;
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.toggle-form-btn:hover {
+    background: #dde8ff;
+    transform: translateY(-1px);
+}
+
+.form-panel {
+    margin-top: 1rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
 .helper-text {
     margin: 0.85rem 0 0;
     font-size: 0.95rem;
