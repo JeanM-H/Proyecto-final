@@ -39,13 +39,48 @@ module.exports = async (req, res) => {
     return res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
   }
 
-  // API: Info
-  if (pathname === '/api') {
-    return res.status(200).json({
-      mensaje: 'API de Climatización - Sistema de Mantenimiento',
-      version: '1.0.0',
-      status: 'OK'
-    });
+// API: Inicializar BD
+  if (pathname === '/api/init-db' && req.method === 'POST') {
+    try {
+      const connection = await getConnection();
+
+      // Crear tablas
+      const fs = require('fs');
+      const path = require('path');
+      const schemaPath = path.join(__dirname, '..', 'database', 'create_tables.sql');
+      const schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
+
+      // Ejecutar cada statement por separado
+      const statements = schemaSQL.split(';').filter(stmt => stmt.trim().length > 0);
+
+      for (const statement of statements) {
+        if (statement.trim()) {
+          await connection.execute(statement);
+        }
+      }
+
+      // Insertar datos de prueba
+      const seedPath = path.join(__dirname, '..', 'database', 'insert_test_data.sql');
+      const seedSQL = fs.readFileSync(seedPath, 'utf-8');
+      const seedStatements = seedSQL.split(';').filter(stmt => stmt.trim().length > 0);
+
+      for (const statement of seedStatements) {
+        if (statement.trim() && !statement.includes('SELECT')) {
+          await connection.execute(statement);
+        }
+      }
+
+      await connection.end();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Base de datos inicializada correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error inicializando BD:', error);
+      return res.status(500).json({ success: false, message: 'Error inicializando BD: ' + error.message });
+    }
   }
 
   // API: Login
