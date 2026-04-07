@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            messageBox.textContent = 'Ingresa un correo válido.';
+            messageBox.textContent = 'Formato de email incorrecto.';
             messageBox.style.color = '#dc2626';
             return;
         }
