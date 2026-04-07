@@ -1,15 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Faltan las variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY/SUPABASE_ANON_KEY');
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
@@ -27,6 +17,18 @@ function parseJsonBody(req) {
     req.on('error', reject);
   });
 }
+
+const routeHandlers = {
+  '/api/login': './login.js',
+  '/api/register': './register.js',
+  '/api/clientes': './clientes.js',
+  '/api/tecnicos': './tecnicos.js',
+  '/api/change-password': './change-password.js',
+  '/api/dashboard-metrics': './dashboard-metrics.js',
+  '/api/equipos': './equipos.js',
+  '/api/ordenes': './ordenes.js',
+  '/api/cotizaciones': './cotizaciones.js'
+};
 
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '*';
@@ -53,43 +55,14 @@ module.exports = async (req, res) => {
     });
   }
 
-  if (pathname === '/api/login' && req.method === 'POST') {
+  const handlerPath = routeHandlers[pathname];
+  if (handlerPath) {
     try {
-      const data = await parseJsonBody(req);
-
-      if (!data.email || !data.password || !data.role) {
-        return res.status(400).json({ success: false, message: 'Datos incompletos' });
-      }
-
-      const { data: user, error } = await supabase
-        .from('usuarios')
-        .select('id, nombre, email, rol, password, estado')
-        .eq('email', data.email)
-        .eq('rol', data.role)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        return res.status(500).json({ success: false, message: 'Error en servidor' });
-      }
-
-      if (!user || user.estado !== 1 || user.password !== data.password) {
-        return res.status(401).json({ success: false, message: 'Usuario no encontrado, contraseña inválida o rol incorrecto' });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: 'Login exitoso',
-        user: {
-          id: user.id,
-          nombre: user.nombre,
-          email: user.email,
-          rol: user.rol
-        }
-      });
+      const handler = require(path.join(__dirname, handlerPath));
+      return handler(req, res);
     } catch (error) {
-      console.error('Error en login:', error);
-      return res.status(500).json({ success: false, message: 'Error en servidor' });
+      console.error('Error en ruta API:', error);
+      return res.status(500).json({ success: false, message: 'Error interno de la API' });
     }
   }
 

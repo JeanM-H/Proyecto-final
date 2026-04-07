@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -64,15 +65,22 @@ module.exports = async (req, res) => {
 
     const nombreCompleto = `${data.nombre.trim()} ${data.apellido.trim()}`;
 
+    if (data.password.length < 6) {
+      return res.status(400).json({ success: false, error: 'La contraseña debe tener al menos 6 caracteres' });
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password.toString().trim(), 10);
+
     // Insertar nuevo usuario en la tabla usuarios
     const { data: newUser, error: insertError } = await supabase
       .from('usuarios')
       .insert({
         nombre: nombreCompleto,
         email: data.email,
-        password: data.password,
+        password: hashedPassword,
         rol: data.rol,
-        estado: true
+        estado: true,
+        needs_password_change: false
       })
       .select('id, nombre, email, rol')
       .single();

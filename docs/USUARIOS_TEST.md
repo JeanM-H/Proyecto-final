@@ -13,7 +13,7 @@
 ## ⚠️ Importante: Contraseñas en Producción
 
 ### Para Desarrollo Local
-Las contraseñas están en texto plano en el archivo `seed.sql` para facilitar las pruebas.
+Las contraseñas están en texto plano en el archivo `insert_test_data.sql` para facilitar las pruebas.
 
 ### Para Producción (Railway)
 **NO uses las contraseñas de arriba directamente.** Debes:
@@ -30,6 +30,11 @@ node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('Admin123', 10).then(h 
 2. **Actualizar `database/seed.sql`** con los hashes generados
 
 3. **Ejecutar el seed** en tu base de datos de Railway
+
+### Nuevos Usuarios Creados por Admin
+- **Contraseña temporal:** Generada automáticamente como `NombreApellidoXXX` donde XXX son 3 dígitos aleatorios.
+- **Primer login:** Redirigido a `change-password.html` para cambiar la contraseña.
+- **Roles:** Cliente o Técnico, asignado por el admin.
 
 ---
 

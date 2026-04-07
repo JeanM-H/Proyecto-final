@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -48,7 +49,7 @@ module.exports = async (req, res) => {
 
     const { data: user, error } = await supabase
       .from('usuarios')
-      .select('id, nombre, email, rol, password, estado')
+      .select('id, nombre, email, rol, password, estado, needs_password_change')
       .eq('email', data.email)
       .eq('rol', data.role)
       .maybeSingle();
@@ -58,16 +59,17 @@ module.exports = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error en servidor' });
     }
 
-    const enteredPassword = data.password.toString().trim();
-    const storedPassword = user && typeof user.password === 'string' ? user.password.trim() : '';
+    const hasValidPassword = user && await bcrypt.compare(data.password.toString(), user.password || '');
+    const isActive = user && (user.estado === true || user.estado === 1);
 
-    if (!user || user.estado !== true || storedPassword !== enteredPassword) {
+    if (!user || !isActive || !hasValidPassword) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado, contraseña inválida o rol incorrecto' });
     }
 
     return res.status(200).json({
       success: true,
       message: 'Login exitoso',
+      needsPasswordChange: Boolean(user.needs_password_change),
       user: {
         id: user.id,
         nombre: user.nombre,

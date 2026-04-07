@@ -131,11 +131,18 @@ mysql -u root -p < ../database/schema.sql
 
 ## 📝 Usuarios de Prueba
 
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Administrador | admin@climatizacion.com | Admin123 |
-| Técnico | tecnico@climatizacion.com | Tecnico123 |
-| Cliente | cliente@example.com | Cliente123 |
+| Rol | Email | Contraseña | Estado |
+|-----|-------|------------|--------|
+| Administrador | admin@climatizacion.com | Admin123 | Activo (sin cambio requerido) |
+| Técnico | tecnico@climatizacion.com | Tecnico123 | Activo (sin cambio requerido) |
+| Cliente | cliente@example.com | Cliente123 | Activo (sin cambio requerido) |
+
+**Nota:** Las contraseñas están encriptadas con bcrypt. Para desarrollo local, usa `insert_test_data.sql` con contraseñas en texto plano. Para producción, usa `seed.sql` con hashes.
+
+### Flujo de Onboarding para Nuevos Usuarios
+- **Usuarios creados por admin:** Reciben una contraseña temporal generada automáticamente (nombre + apellido + 3 dígitos aleatorios).
+- **Primer login:** Son redirigidos a cambiar la contraseña antes de acceder al dashboard.
+- **Roles asignables:** Cliente o Técnico (seleccionado por el admin al crear).
 
 ---
 

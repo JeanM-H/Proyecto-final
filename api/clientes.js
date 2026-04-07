@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const supabase = require('./supabaseClient');
 
 function parseJsonBody(req) {
@@ -15,6 +16,16 @@ function parseJsonBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+function generateTemporaryPassword(nombre, apellido) {
+  const base = `${nombre || ''}${apellido || ''}`
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .slice(0, 8) || 'usuario';
+  const digits = Math.floor(100 + Math.random() * 900);
+  return `${base}${digits}`;
 }
 
 module.exports = async (req, res) => {
@@ -48,11 +59,14 @@ module.exports = async (req, res) => {
   if (req.method === 'POST') {
     try {
       const data = await parseJsonBody(req);
-      const { nombre, apellido, email, password, empresa, telefono, direccion, ciudad, pais } = data;
+      const { nombre, apellido, email, empresa, telefono, direccion, ciudad, pais } = data;
 
-      if (!nombre || !apellido || !email || !password || !empresa) {
+      if (!nombre || !apellido || !email || !empresa) {
         return res.status(400).json({ success: false, message: 'Datos incompletos para crear el cliente' });
       }
+
+      const password = generateTemporaryPassword(nombre, apellido);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
@@ -72,7 +86,14 @@ module.exports = async (req, res) => {
       const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`;
       const { data: usuario, error: insertUserError } = await supabase
         .from('usuarios')
-        .insert({ nombre: nombreCompleto, email, password, rol: 'Cliente', estado: true })
+        .insert({
+          nombre: nombreCompleto,
+          email,
+          password: hashedPassword,
+          rol: 'Cliente',
+          estado: true,
+          needs_password_change: true
+        })
         .select('id')
         .single();
 
@@ -91,7 +112,12 @@ module.exports = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Error al crear el cliente' });
       }
 
-      return res.status(201).json({ success: true, cliente });
+      return res.status(201).json({
+        success: true,
+        message: 'Cliente creado correctamente',
+        cliente,
+        generatedPassword: password
+      });
     } catch (error) {
       console.error('Error clientes POST:', error);
       return res.status(500).json({ success: false, message: 'Error al crear clientes' });

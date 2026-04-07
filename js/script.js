@@ -59,13 +59,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data && data.success) {
-                const targetPage = role === 'Administrador' ? 'admin.html' : role === 'Técnico' ? 'tech.html' : 'client.html';
-                messageBox.textContent = `¡Bienvenido, ${role}! Redirigiendo...`;
-                messageBox.style.color = '#16a34a';
-
-                setTimeout(() => {
-                    window.location.href = targetPage;
-                }, 800);
+                if (data.needsPasswordChange) {
+                    const targetPage = `change-password.html?email=${encodeURIComponent(email)}&role=${encodeURIComponent(role)}`;
+                    messageBox.textContent = `¡Bienvenido, ${role}! Redirigiendo para cambiar contraseña...`;
+                    messageBox.style.color = '#16a34a';
+                    setTimeout(() => {
+                        window.location.href = targetPage;
+                    }, 800);
+                } else {
+                    const targetPage = role === 'Administrador' ? 'admin.html' : role === 'Técnico' ? 'tech.html' : 'client.html';
+                    messageBox.textContent = `¡Bienvenido, ${role}! Redirigiendo...`;
+                    messageBox.style.color = '#16a34a';
+                    setTimeout(() => {
+                        window.location.href = targetPage;
+                    }, 800);
+                }
             } else {
                 const message = (data && data.message) ? data.message : 'Credenciales inválidas.';
                 messageBox.textContent = message;

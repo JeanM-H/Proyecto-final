@@ -330,16 +330,35 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (tecnicoForm) {
-            tecnicoForm.addEventListener('submit', event => {
+            tecnicoForm.addEventListener('submit', async event => {
                 event.preventDefault();
-                submitForm('/api/tecnicos', {
+                const payload = {
                     nombre: document.getElementById('tecnico-nombre').value.trim(),
                     apellido: document.getElementById('tecnico-apellido').value.trim(),
                     email: document.getElementById('tecnico-email').value.trim(),
-                    password: document.getElementById('tecnico-password').value.trim(),
                     especialidad: document.getElementById('tecnico-especialidad').value.trim(),
                     telefono_contacto: document.getElementById('tecnico-telefono').value.trim()
-                }, 'Técnico creado correctamente.', 'tecnico-form', 'tecnico-form-message', fetchTecnicos);
+                };
+
+                try {
+                    const response = await fetch(`${apiBase}/api/tecnicos`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        setFormMessage('tecnico-form-message', `Técnico creado correctamente. Contraseña temporal: ${data.generatedPassword}`, 'success');
+                        document.getElementById('tecnico-form').reset();
+                        fetchTecnicos();
+                        fetchMetrics();
+                    } else {
+                        setFormMessage('tecnico-form-message', data.message || 'Error al guardar.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error guardando técnico:', error);
+                    setFormMessage('tecnico-form-message', 'Error de conexión al guardar.', 'error');
+                }
             });
         }
 

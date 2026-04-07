@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const supabase = require('./supabaseClient');
 
 function parseJsonBody(req) {
@@ -15,6 +16,16 @@ function parseJsonBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+function generateTemporaryPassword(nombre, apellido) {
+  const base = `${nombre || ''}${apellido || ''}`
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .slice(0, 8) || 'usuario';
+  const digits = Math.floor(100 + Math.random() * 900);
+  return `${base}${digits}`;
 }
 
 module.exports = async (req, res) => {
@@ -85,7 +96,12 @@ module.exports = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Error al crear técnico' });
       }
 
-      return res.status(201).json({ success: true, tecnico: data });
+      return res.status(201).json({
+        success: true,
+        message: 'Técnico creado correctamente',
+        tecnico: data,
+        generatedPassword: password
+      });
     } catch (error) {
       console.error('Error tecnicos POST:', error);
       return res.status(500).json({ success: false, message: 'Error al crear técnico' });
