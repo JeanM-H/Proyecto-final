@@ -50,9 +50,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => null);
 
-            if (data.success) {
+            if (!response.ok) {
+                const message = (data && data.message) ? data.message : 'Credenciales inválidas.';
+                messageBox.textContent = message;
+                messageBox.style.color = '#dc2626';
+                return;
+            }
+
+            if (data && data.success) {
                 messageBox.textContent = `¡Bienvenido, ${role}! Accediendo...`;
                 messageBox.style.color = '#16a34a';
 
@@ -61,7 +68,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     homeSection.classList.remove('hidden');
                 }, 800);
             } else {
-                messageBox.textContent = 'Credenciales inválidas.';
+                const message = (data && data.message) ? data.message : 'Credenciales inválidas.';
+                messageBox.textContent = message;
                 messageBox.style.color = '#dc2626';
             }
         } catch (error) {
