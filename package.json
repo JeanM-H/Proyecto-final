@@ -1,7 +1,7 @@
 {
   "name": "sistema-mantenimiento-climatizacion",
   "version": "1.0.0",
-  "description": "Sistema de mantenimiento de climatización",
+  "description": "Sistema de mantenimiento de climatizacion",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
