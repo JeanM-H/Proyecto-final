@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     const messageBox = document.getElementById('login-message');
-    const loginPage = document.querySelector('.login-page');
-    const homeSection = document.getElementById('home');
-    const logoutBtn = document.getElementById('logout-btn');
-
-    // Detectar la URL base de la API
     const apiBase = window.location.origin;
+
+    if (!loginForm) {
+        return;
+    }
 
     loginForm.addEventListener('submit', async function(event) {
         event.preventDefault();
@@ -60,12 +59,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data && data.success) {
-                messageBox.textContent = `¡Bienvenido, ${role}! Accediendo...`;
+                const targetPage = role === 'Administrador' ? 'admin.html' : role === 'Técnico' ? 'tech.html' : 'client.html';
+                messageBox.textContent = `¡Bienvenido, ${role}! Redirigiendo...`;
                 messageBox.style.color = '#16a34a';
 
                 setTimeout(() => {
-                    loginPage.classList.add('hidden');
-                    homeSection.classList.remove('hidden');
+                    window.location.href = targetPage;
                 }, 800);
             } else {
                 const message = (data && data.message) ? data.message : 'Credenciales inválidas.';
@@ -78,13 +77,4 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
         }
     });
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            homeSection.classList.add('hidden');
-            loginPage.classList.remove('hidden');
-            messageBox.textContent = '';
-            loginForm.reset();
-        });
-    }
 });

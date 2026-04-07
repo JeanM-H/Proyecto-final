@@ -14,51 +14,51 @@
                 <h1>Proyecto Final</h1>
             </div>
             <nav>
-                <a href="#help">Ayuda</a>
-                <a href="#contact">Contacto</a>
+                <a href="#about">Nosotros</a>
+                <a href="#features">Características</a>
+                <a href="login.html" class="btn-nav">Iniciar sesión</a>
             </nav>
         </header>
 
         <main id="content">
-            <section class="login-page">
-                <div class="login-panel">
-                    <div class="login-card">
-                        <div class="card-header">
-                            <h2>Bienvenido</h2>
-                            <p>Ingresa tus datos para acceder al panel.</p>
-                        </div>
-                        <form id="login-form">
-                            <div class="input-group">
-                                <label for="email">Correo electrónico</label>
-                                <input type="email" id="email" name="email" placeholder="tucorreo@dominio.com" required>
-                            </div>
-
-                            <div class="input-group">
-                                <label for="password">Contraseña</label>
-                                <input type="password" id="password" name="password" placeholder="********" required minlength="6">
-                            </div>
-
-                            <div class="input-group role-selection">
-                                <span>Rol</span>
-                                <label><input type="radio" name="role" value="Administrador" checked> Administrador</label>
-                                <label><input type="radio" name="role" value="Técnico"> Técnico</label>
-                                <label><input type="radio" name="role" value="Cliente"> Cliente</label>
-                            </div>
-
-                            <button type="submit" class="btn-primary">Iniciar sesión</button>
-                            <p class="helper-text"><a href="#">¿Olvidaste tu contraseña?</a></p>
-                        </form>
-
-                        <div id="login-message" class="login-message" aria-live="polite"></div>
-                    </div>
+            <section class="hero-section">
+                <div class="hero-copy">
+                    <p class="eyebrow">Solución para gestión de climatización</p>
+                    <h1>Administra clientes, técnicos, equipos y órdenes en una sola plataforma.</h1>
+                    <p class="hero-text">Una aplicación diseñada para empresas de mantenimiento de climatización que necesitan centralizar operaciones, agilizar decisiones y mejorar la trazabilidad de sus servicios.</p>
+                    <a href="login.html" class="btn-primary hero-button">Iniciar sesión</a>
                 </div>
             </section>
 
-            <section id="home" class="app-content hidden">
-                <div class="welcome-card">
-                    <h2>¡Bienvenido!</h2>
-                    <p>Has iniciado sesión correctamente. Aquí aparecerá el contenido principal de la aplicación.</p>
-                    <button id="logout-btn" class="btn-secondary">Cerrar sesión</button>
+            <section id="about" class="section-panel">
+                <h2>¿Qué ofrecemos?</h2>
+                <p>Control completo del ciclo de mantenimiento: desde la creación de clientes y equipos hasta la asignación de técnicos, el seguimiento de órdenes y la generación de cotizaciones.</p>
+            </section>
+
+            <section id="features" class="section-panel feature-grid">
+                <div class="feature-card">
+                    <h3>CRUD de clientes</h3>
+                    <p>Registra, edita y consulta clientes con datos completos y seguimiento.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>CRUD de equipos</h3>
+                    <p>Gestiona los equipos de climatización y su historial de mantenimiento.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Asignación de técnicos</h3>
+                    <p>Organiza tu equipo y asigna tareas según disponibilidad y especialidad.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Gestión de órdenes</h3>
+                    <p>Crea, asigna y sigue órdenes de trabajo con toda la información necesaria.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Cotizaciones</h3>
+                    <p>Genera presupuestos y controla solicitudes comerciales en un solo lugar.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Dashboard</h3>
+                    <p>Visualiza métricas clave para tomar decisiones rápidas y con datos confiables.</p>
                 </div>
             </section>
         </main>
@@ -67,6 +67,5 @@
             <p>&copy; 2026 Proyecto Final ADSO</p>
         </footer>
     </div>
-    <script src="js/script.js"></script>
 </body>
 </html>
