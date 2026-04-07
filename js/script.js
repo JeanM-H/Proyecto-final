@@ -5,7 +5,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const homeSection = document.getElementById('home');
     const logoutBtn = document.getElementById('logout-btn');
 
-    loginForm.addEventListener('submit', function(event) {
+    // Detectar la URL base de la API
+    const apiBase = window.location.origin;
+
+    loginForm.addEventListener('submit', async function(event) {
         event.preventDefault();
 
         const email = loginForm.email.value.trim();
@@ -31,13 +34,41 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        messageBox.textContent = `¡Bienvenido, ${role}! Accediendo...`;
-        messageBox.style.color = '#16a34a';
+        messageBox.textContent = 'Verificando credenciales...';
+        messageBox.style.color = '#0066cc';
 
-        setTimeout(() => {
-            loginPage.classList.add('hidden');
-            homeSection.classList.remove('hidden');
-        }, 800);
+        try {
+            const response = await fetch(`${apiBase}/api/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    role: role
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                messageBox.textContent = `¡Bienvenido, ${role}! Accediendo...`;
+                messageBox.style.color = '#16a34a';
+
+                setTimeout(() => {
+                    loginPage.classList.add('hidden');
+                    homeSection.classList.remove('hidden');
+                }, 800);
+            } else {
+                messageBox.textContent = 'Credenciales inválidas.';
+                messageBox.style.color = '#dc2626';
+            }
+        } catch (error) {
+            messageBox.textContent = 'Error de conexión con el servidor.';
+            messageBox.style.color = '#dc2626';
+            console.error('Error:', error);
+        }
     });
 
     if (logoutBtn) {
