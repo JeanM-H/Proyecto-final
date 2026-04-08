@@ -30,7 +30,7 @@ function generateTemporaryPassword(nombre, apellido) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -121,6 +121,81 @@ module.exports = async (req, res) => {
     } catch (error) {
       console.error('Error clientes POST:', error);
       return res.status(500).json({ success: false, message: 'Error al crear clientes' });
+    }
+  }
+
+  if (req.method === 'PUT') {
+    try {
+      const data = await parseJsonBody(req);
+      const { id, empresa, telefono, direccion, ciudad, pais } = data;
+
+      if (!id || !empresa) {
+        return res.status(400).json({ success: false, message: 'ID y empresa son requeridos' });
+      }
+
+      const { data: cliente, error: updateError } = await supabase
+        .from('clientes')
+        .update({ empresa, telefono, direccion, ciudad, pais })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Error actualizando cliente:', updateError);
+        return res.status(500).json({ success: false, message: 'Error al actualizar cliente' });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Cliente actualizado correctamente',
+        cliente
+      });
+    } catch (error) {
+      console.error('Error clientes PUT:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar cliente' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    try {
+      const data = await parseJsonBody(req);
+      const { id } = data;
+
+      if (!id) {
+        return res.status(400).json({ success: false, message: 'ID es requerido' });
+      }
+
+      const { data: cliente, error: selectError } = await supabase
+        .from('clientes')
+        .select('usuario_id')
+        .eq('id', id)
+        .single();
+
+      if (selectError) {
+        return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+      }
+
+      const { error: deleteClienteError } = await supabase
+        .from('clientes')
+        .delete()
+        .eq('id', id);
+
+      if (deleteClienteError) {
+        console.error('Error eliminando cliente:', deleteClienteError);
+        return res.status(500).json({ success: false, message: 'Error al eliminar cliente' });
+      }
+
+      if (cliente.usuario_id) {
+        await supabase.from('usuarios').delete().eq('id', cliente.usuario_id);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Cliente eliminado correctamente'
+      });
+    } catch (error) {
+      console.error('Error clientes DELETE:', error);
+      return res.status(500).json({ success: false, message: 'Error al eliminar cliente' });
     }
   }
 

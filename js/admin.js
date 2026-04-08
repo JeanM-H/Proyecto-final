@@ -64,18 +64,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function fetchClientes() {
         if (!elements.clientesTableBody) return;
-        elements.clientesTableBody.innerHTML = '<tr><td colspan="6">Cargando clientes...</td></tr>';
+        elements.clientesTableBody.innerHTML = '<tr><td colspan="8">Cargando clientes...</td></tr>';
 
         try {
             const response = await fetch(`${apiBase}/api/clientes`);
             const data = await response.json();
             if (!response.ok || !data.success) {
-                elements.clientesTableBody.innerHTML = '<tr><td colspan="6">No se pudieron cargar los clientes.</td></tr>';
+                elements.clientesTableBody.innerHTML = '<tr><td colspan="8">No se pudieron cargar los clientes.</td></tr>';
                 return;
             }
             options.clientes = data.clientes || [];
             if (options.clientes.length === 0) {
-                elements.clientesTableBody.innerHTML = '<tr><td colspan="6">No hay clientes registrados.</td></tr>';
+                elements.clientesTableBody.innerHTML = '<tr><td colspan="8">No hay clientes registrados.</td></tr>';
                 return;
             }
             elements.clientesTableBody.innerHTML = '';
@@ -88,13 +88,77 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${cliente.ciudad || 'N/A'}</td>
                     <td>${cliente.pais || 'N/A'}</td>
                     <td>${new Date(cliente.created_at).toLocaleDateString('es-CO')}</td>
+                    <td>
+                        <button class="btn-edit-cliente" data-id="${cliente.id}" style="padding: 4px 8px; margin-right: 4px; cursor: pointer;">Editar</button>
+                        <button class="btn-delete-cliente" data-id="${cliente.id}" style="padding: 4px 8px; cursor: pointer; background-color: #dc2626; color: white; border: none; border-radius: 4px;">Eliminar</button>
+                    </td>
                 `;
                 elements.clientesTableBody.appendChild(row);
             });
+
+            document.querySelectorAll('.btn-edit-cliente').forEach(btn => {
+                btn.addEventListener('click', handleEditCliente);
+            });
+
+            document.querySelectorAll('.btn-delete-cliente').forEach(btn => {
+                btn.addEventListener('click', handleDeleteCliente);
+            });
+
             populateSelectOptions();
         } catch (error) {
             console.error('Error cargando clientes:', error);
-            elements.clientesTableBody.innerHTML = '<tr><td colspan="6">Error al cargar clientes.</td></tr>';
+            elements.clientesTableBody.innerHTML = '<tr><td colspan="8">Error al cargar clientes.</td></tr>';
+        }
+    }
+
+    async function handleEditCliente(event) {
+        const clienteId = parseInt(event.target.dataset.id);
+        const cliente = options.clientes.find(c => c.id === clienteId);
+
+        if (!cliente) return;
+
+        document.getElementById('cliente-nombre').value = '';
+        document.getElementById('cliente-apellido').value = '';
+        document.getElementById('cliente-email').value = '';
+        document.getElementById('cliente-empresa').value = cliente.empresa || '';
+        document.getElementById('cliente-telefono').value = cliente.telefono || '';
+        document.getElementById('cliente-direccion').value = cliente.direccion || '';
+        document.getElementById('cliente-ciudad').value = cliente.ciudad || '';
+        document.getElementById('cliente-pais').value = cliente.pais || '';
+
+        const drawerTitle = document.getElementById('drawer-title');
+        const clienteForm = document.getElementById('cliente-form');
+        
+        drawerTitle.textContent = `Editar Cliente - ID: ${clienteId}`;
+        clienteForm.dataset.mode = 'edit';
+        clienteForm.dataset.clienteId = clienteId;
+
+        openDrawer('cliente');
+    }
+
+    async function handleDeleteCliente(event) {
+        const clienteId = parseInt(event.target.dataset.id);
+        
+        if (confirm('¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.')) {
+            try {
+                const response = await fetch(`${apiBase}/api/clientes`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: clienteId })
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setFormMessage('cliente-form-message', 'Cliente eliminado correctamente.', 'success');
+                    fetchClientes();
+                    fetchMetrics();
+                } else {
+                    setFormMessage('cliente-form-message', data.message || 'Error al eliminar cliente.', 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando cliente:', error);
+                setFormMessage('cliente-form-message', 'Error de conexión.', 'error');
+            }
         }
     }
 
@@ -297,19 +361,51 @@ document.addEventListener('DOMContentLoaded', function () {
         const cotizacionForm = document.getElementById('cotizacion-form');
 
         if (clienteForm) {
-            clienteForm.addEventListener('submit', event => {
+            clienteForm.addEventListener('submit', async event => {
                 event.preventDefault();
-                submitForm('/api/clientes', {
-                    nombre: document.getElementById('cliente-nombre').value.trim(),
-                    apellido: document.getElementById('cliente-apellido').value.trim(),
-                    email: document.getElementById('cliente-email').value.trim(),
-                    password: document.getElementById('cliente-password').value.trim(),
+                const mode = clienteForm.dataset.mode || 'create';
+                const clienteId = parseInt(clienteForm.dataset.clienteId);
+
+                const payload = {
                     empresa: document.getElementById('cliente-empresa').value.trim(),
                     telefono: document.getElementById('cliente-telefono').value.trim(),
                     direccion: document.getElementById('cliente-direccion').value.trim(),
                     ciudad: document.getElementById('cliente-ciudad').value.trim(),
                     pais: document.getElementById('cliente-pais').value.trim()
-                }, 'Cliente creado correctamente.', 'cliente-form', 'cliente-form-message', fetchClientes);
+                };
+
+                if (mode === 'edit') {
+                    payload.id = clienteId;
+                    try {
+                        const response = await fetch(`${apiBase}/api/clientes`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            setFormMessage('cliente-form-message', 'Cliente actualizado correctamente.', 'success');
+                            clienteForm.dataset.mode = 'create';
+                            delete clienteForm.dataset.clienteId;
+                            setTimeout(() => {
+                                closeDrawer('cliente');
+                                fetchClientes();
+                                fetchMetrics();
+                            }, 1000);
+                        } else {
+                            setFormMessage('cliente-form-message', data.message || 'Error al actualizar cliente.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error actualizando cliente:', error);
+                        setFormMessage('cliente-form-message', 'Error de conexión.', 'error');
+                    }
+                } else {
+                    payload.nombre = document.getElementById('cliente-nombre').value.trim();
+                    payload.apellido = document.getElementById('cliente-apellido').value.trim();
+                    payload.email = document.getElementById('cliente-email').value.trim();
+                    
+                    submitForm('/api/clientes', payload, 'Cliente creado correctamente.', 'cliente-form', 'cliente-form-message', fetchClientes);
+                }
             });
         }
 
@@ -401,7 +497,26 @@ document.addEventListener('DOMContentLoaded', function () {
         const activeForm = document.getElementById(`drawer-form-${formType}`);
         if (!activeForm) return;
         activeForm.classList.add('active');
-        drawerTitle.textContent = activeForm.dataset.title || 'Formulario';
+        
+        // Resetear formulario de cliente si está en modo crear
+        if (formType === 'cliente') {
+            const clienteForm = document.getElementById('cliente-form');
+            const mode = clienteForm.dataset.mode || 'create';
+            
+            if (mode === 'create') {
+                drawerTitle.textContent = 'Crear Cliente';
+                clienteForm.reset();
+                const messageEl = document.getElementById('cliente-form-message');
+                if (messageEl) messageEl.textContent = '';
+                // Limpiar los campos que no se resetean con reset()
+                document.getElementById('cliente-nombre').value = '';
+                document.getElementById('cliente-apellido').value = '';
+                document.getElementById('cliente-email').value = '';
+            }
+        } else {
+            drawerTitle.textContent = activeForm.dataset.title || 'Formulario';
+        }
+        
         drawer.classList.add('open');
         drawerBackdrop.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
