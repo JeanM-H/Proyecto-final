@@ -64,18 +64,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function fetchClientes() {
         if (!elements.clientesTableBody) return;
-        elements.clientesTableBody.innerHTML = '<tr><td colspan="7">Cargando clientes...</td></tr>';
+        elements.clientesTableBody.innerHTML = '<tr><td colspan="8">Cargando clientes...</td></tr>';
 
         try {
             const response = await fetch(`${apiBase}/api/clientes`);
             const data = await response.json();
             if (!response.ok || !data.success) {
-                elements.clientesTableBody.innerHTML = '<tr><td colspan="7">No se pudieron cargar los clientes.</td></tr>';
+                elements.clientesTableBody.innerHTML = '<tr><td colspan="9">No se pudieron cargar los clientes.</td></tr>';
                 return;
             }
             options.clientes = data.clientes || [];
             if (options.clientes.length === 0) {
-                elements.clientesTableBody.innerHTML = '<tr><td colspan="7">No hay clientes registrados.</td></tr>';
+                elements.clientesTableBody.innerHTML = '<tr><td colspan="9">No hay clientes registrados.</td></tr>';
                 return;
             }
             elements.clientesTableBody.innerHTML = '';
@@ -83,7 +83,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${cliente.id}</td>
+                    <td>${cliente.usuario?.nombre || 'N/A'}</td>
                     <td>${cliente.empresa || 'N/A'}</td>
+                    <td>${cliente.usuario?.email || 'N/A'}</td>
                     <td>${cliente.telefono || 'N/A'}</td>
                     <td>${cliente.ciudad || 'N/A'}</td>
                     <td>${cliente.pais || 'N/A'}</td>
@@ -104,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
             populateSelectOptions();
         } catch (error) {
             console.error('Error cargando clientes:', error);
-            elements.clientesTableBody.innerHTML = '<tr><td colspan="8">Error al cargar clientes.</td></tr>';
+            elements.clientesTableBody.innerHTML = '<tr><td colspan="9">Error al cargar clientes.</td></tr>';
         }
     }
 

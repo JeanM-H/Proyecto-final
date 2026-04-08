@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
     try {
       const { data, error } = await supabase
         .from('clientes')
-        .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at')
+        .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
         .order('id', { ascending: true });
 
       if (error) {
