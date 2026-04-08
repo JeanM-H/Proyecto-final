@@ -89,19 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${cliente.pais || 'N/A'}</td>
                     <td>${new Date(cliente.created_at).toLocaleDateString('es-CO')}</td>
                     <td class="table-actions">
-                        <button class="btn-edit-cliente" data-id="${cliente.id}">Editar</button>
-                        <button class="btn-delete-cliente" data-id="${cliente.id}">Eliminar</button>
+                        <div class="action-menu">
+                            <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${cliente.id}">⋮</button>
+                            <div class="action-menu-dropdown hidden" role="menu">
+                                <button type="button" class="action-menu-item action-menu-edit" data-id="${cliente.id}" role="menuitem">Editar</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${cliente.id}" role="menuitem">Eliminar</button>
+                            </div>
+                        </div>
                     </td>
                 `;
                 elements.clientesTableBody.appendChild(row);
-            });
-
-            document.querySelectorAll('.btn-edit-cliente').forEach(btn => {
-                btn.addEventListener('click', handleEditCliente);
-            });
-
-            document.querySelectorAll('.btn-delete-cliente').forEach(btn => {
-                btn.addEventListener('click', handleDeleteCliente);
             });
 
             populateSelectOptions();
@@ -523,6 +520,68 @@ document.addEventListener('DOMContentLoaded', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function closeActionMenus() {
+        document.querySelectorAll('.action-menu-dropdown.open').forEach(menu => {
+            menu.classList.remove('open');
+            menu.classList.add('hidden');
+            const trigger = menu.previousElementSibling;
+            if (trigger && trigger.classList.contains('action-menu-trigger')) {
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    function toggleActionMenu(trigger) {
+        const menu = trigger.nextElementSibling;
+        if (!menu) return;
+        const isOpen = !menu.classList.contains('hidden');
+        closeActionMenus();
+        if (!isOpen) {
+            menu.classList.remove('hidden');
+            menu.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    function bindActionMenuEvents() {
+        if (!elements.clientesTableBody) return;
+
+        elements.clientesTableBody.addEventListener('click', event => {
+            const trigger = event.target.closest('.action-menu-trigger');
+            if (trigger) {
+                event.stopPropagation();
+                toggleActionMenu(trigger);
+                return;
+            }
+
+            const editButton = event.target.closest('.action-menu-edit');
+            if (editButton) {
+                handleEditCliente({ target: editButton });
+                closeActionMenus();
+                return;
+            }
+
+            const deleteButton = event.target.closest('.action-menu-delete');
+            if (deleteButton) {
+                handleDeleteCliente({ target: deleteButton });
+                closeActionMenus();
+                return;
+            }
+        });
+
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.action-menu')) {
+                closeActionMenus();
+            }
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeActionMenus();
+            }
+        });
+    }
+
     function bindFormDrawerButtons() {
         document.querySelectorAll('.open-drawer-btn').forEach(button => {
             button.addEventListener('click', () => {
@@ -587,5 +646,6 @@ document.addEventListener('DOMContentLoaded', function () {
     fetchTecnicos();
     bindForms();
     bindFormDrawerButtons();
+    bindActionMenuEvents();
     showAdminSection('admin-dashboard');
 });
