@@ -64,18 +64,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function fetchClientes() {
         if (!elements.clientesTableBody) return;
-        elements.clientesTableBody.innerHTML = '<tr><td colspan="8">Cargando clientes...</td></tr>';
+        elements.clientesTableBody.innerHTML = '<tr><td colspan="7">Cargando clientes...</td></tr>';
 
         try {
             const response = await fetch(`${apiBase}/api/clientes`);
             const data = await response.json();
             if (!response.ok || !data.success) {
-                elements.clientesTableBody.innerHTML = '<tr><td colspan="8">No se pudieron cargar los clientes.</td></tr>';
+                elements.clientesTableBody.innerHTML = '<tr><td colspan="7">No se pudieron cargar los clientes.</td></tr>';
                 return;
             }
             options.clientes = data.clientes || [];
             if (options.clientes.length === 0) {
-                elements.clientesTableBody.innerHTML = '<tr><td colspan="8">No hay clientes registrados.</td></tr>';
+                elements.clientesTableBody.innerHTML = '<tr><td colspan="7">No hay clientes registrados.</td></tr>';
                 return;
             }
             elements.clientesTableBody.innerHTML = '';
@@ -88,9 +88,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${cliente.ciudad || 'N/A'}</td>
                     <td>${cliente.pais || 'N/A'}</td>
                     <td>${new Date(cliente.created_at).toLocaleDateString('es-CO')}</td>
-                    <td>
-                        <button class="btn-edit-cliente" data-id="${cliente.id}" style="padding: 4px 8px; margin-right: 4px; cursor: pointer;">Editar</button>
-                        <button class="btn-delete-cliente" data-id="${cliente.id}" style="padding: 4px 8px; cursor: pointer; background-color: #dc2626; color: white; border: none; border-radius: 4px;">Eliminar</button>
+                    <td class="table-actions">
+                        <button class="btn-edit-cliente" data-id="${cliente.id}">Editar</button>
+                        <button class="btn-delete-cliente" data-id="${cliente.id}">Eliminar</button>
                     </td>
                 `;
                 elements.clientesTableBody.appendChild(row);
