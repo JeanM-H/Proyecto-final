@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador</title>
+    <link rel="stylesheet" href="css/styles-v2.css">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-mark">ADSO</span>
+                <h1>Administrador</h1>
+            </div>
+            <nav>
+                <a href="login.html">Cerrar sesión</a>
+            </nav>
+        </header>
+
+        <main id="content">
+            <section class="admin-shell">
+                <div class="admin-sidebar">
+                    <h3>Módulo Administrativo</h3>
+                    <nav class="admin-nav">
+                        <button type="button" class="admin-tab active" data-section="dashboard">Dashboard</button>
+                        <button type="button" class="admin-tab" data-section="clientes">Clientes</button>
+                        <button type="button" class="admin-tab" data-section="equipos">Equipos</button>
+                        <button type="button" class="admin-tab" data-section="tecnicos">Técnicos</button>
+                        <button type="button" class="admin-tab" data-section="ordenes">Órdenes</button>
+                        <button type="button" class="admin-tab" data-section="cotizaciones">Cotizaciones</button>
+                    </nav>
+                </div>
+                <div class="admin-main">
+                    <div id="admin-dashboard" class="admin-section">
+                        <h2>Dashboard administrativo</h2>
+                        <div class="metric-grid">
+                            <div class="metric-card">
+                                <span class="metric-title">Clientes</span>
+                                <strong id="metric-clientes">--</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-title">Equipos</span>
+                                <strong id="metric-equipos">--</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-title">Técnicos</span>
+                                <strong id="metric-tecnicos">--</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-title">Órdenes</span>
+                                <strong id="metric-ordenes">--</strong>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-title">Cotizaciones</span>
+                                <strong id="metric-cotizaciones">--</strong>
+                            </div>
+                        </div>
+                        <p class="dashboard-text">Este módulo te permite ver un resumen y acceder al CRUD de clientes, equipos, técnicos, órdenes y cotizaciones.</p>
+                    </div>
+
+                    <div id="admin-clientes" class="admin-section hidden">
+                        <h2>Clientes</h2>
+                        <div class="section-grid">
+                            <div class="card-panel">
+                                <p>Listado de clientes registrados en el sistema.</p>
+                                <div id="clientes-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nombre</th>
+                                                <th>Empresa</th>
+                                                <th>Correo</th>
+                                                <th>Teléfono</th>
+                                                <th>Ciudad</th>
+                                                <th>País</th>
+                                                <th>Registrado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clientes-table-body">
+                                            <tr><td colspan="9">Cargando clientes...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-panel">
+                                <h3>Crear cliente</h3>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="cliente">Crear cliente</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="admin-equipos" class="admin-section hidden">
+                        <h2>Equipos</h2>
+                        <div class="section-grid">
+                            <div class="card-panel">
+                                <p>Gestión del inventario de equipos de climatización.</p>
+                                <div id="equipos-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Cliente</th>
+                                                <th>Marca</th>
+                                                <th>Modelo</th>
+                                                <th>Serial</th>
+                                                <th>Tipo</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="equipos-table-body">
+                                            <tr><td colspan="7">Cargando equipos...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-panel">
+                                <h3>Agregar equipo</h3>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="equipo">Abrir formulario</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="admin-tecnicos" class="admin-section hidden">
+                        <h2>Técnicos</h2>
+                        <div class="section-grid">
+                            <div class="card-panel">
+                                <p>Registro y administración de técnicos.</p>
+                                <div id="tecnicos-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nombre</th>
+                                                <th>Email</th>
+                                                <th>Especialidad</th>
+                                                <th>Teléfono</th>
+                                                <th>Disponible</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tecnicos-table-body">
+                                            <tr><td colspan="6">Cargando técnicos...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-panel">
+                                <h3>Agregar técnico</h3>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="tecnico">Abrir formulario</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="admin-ordenes" class="admin-section hidden">
+                        <h2>Órdenes</h2>
+                        <div class="section-grid">
+                            <div class="card-panel">
+                                <p>Seguimiento de órdenes de mantenimiento.</p>
+                                <div id="ordenes-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Cliente</th>
+                                                <th>Equipo</th>
+                                                <th>Técnico</th>
+                                                <th>Tipo</th>
+                                                <th>Estado</th>
+                                                <th>Programada</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ordenes-table-body">
+                                            <tr><td colspan="7">Cargando órdenes...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-panel">
+                                <h3>Crear orden</h3>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="orden">Abrir formulario</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="admin-cotizaciones" class="admin-section hidden">
+                        <h2>Cotizaciones</h2>
+                        <div class="section-grid">
+                            <div class="card-panel">
+                                <p>Creación y seguimiento de cotizaciones.</p>
+                                <div id="cotizaciones-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Cliente</th>
+                                                <th>Descripción</th>
+                                                <th>Monto</th>
+                                                <th>Estado</th>
+                                                <th>Solicitud</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="cotizaciones-table-body">
+                                            <tr><td colspan="6">Cargando cotizaciones...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-panel">
+                                <h3>Crear cotización</h3>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="cotizacion">Abrir formulario</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
+        <aside id="form-drawer" class="form-drawer" aria-hidden="true">
+            <div class="drawer-header">
+                <h3 id="drawer-title">Formulario</h3>
+                <button type="button" id="close-drawer" class="btn-secondary">Cerrar</button>
+            </div>
+            <div id="drawer-content" class="drawer-content">
+                <div id="drawer-form-cliente" class="drawer-form" data-title="Crear cliente">
+                    <form id="cliente-form" class="admin-form">
+                        <div class="input-group"><label for="cliente-nombre">Nombre</label><input id="cliente-nombre" name="nombre" type="text" required></div>
+                        <div class="input-group"><label for="cliente-apellido">Apellido</label><input id="cliente-apellido" name="apellido" type="text" required></div>
+                        <div class="input-group"><label for="cliente-email">Correo</label><input id="cliente-email" name="email" type="email" required></div>
+                        <div class="input-group"><label for="cliente-empresa">Empresa</label><input id="cliente-empresa" name="empresa" type="text" required></div>
+                        <div class="input-group"><label for="cliente-telefono">Teléfono</label><input id="cliente-telefono" name="telefono" type="tel"></div>
+                        <div class="input-group"><label for="cliente-direccion">Dirección</label><input id="cliente-direccion" name="direccion" type="text"></div>
+                        <div class="input-group"><label for="cliente-ciudad">Ciudad</label><input id="cliente-ciudad" name="ciudad" type="text"></div>
+                        <div class="input-group"><label for="cliente-pais">País</label><input id="cliente-pais" name="pais" type="text"></div>
+                        <button type="submit" class="btn-primary">Guardar cliente</button>
+                        <p id="cliente-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-equipo" class="drawer-form hidden" data-title="Agregar equipo">
+                    <form id="equipo-form" class="admin-form">
+                        <div class="input-group"><label for="equipo-cliente">Cliente</label><select id="equipo-cliente" required></select></div>
+                        <div class="input-group"><label for="equipo-marca">Marca</label><input id="equipo-marca" name="marca" type="text" required></div>
+                        <div class="input-group"><label for="equipo-modelo">Modelo</label><input id="equipo-modelo" name="modelo" type="text" required></div>
+                        <div class="input-group"><label for="equipo-serial">Serial</label><input id="equipo-serial" name="serial" type="text" required></div>
+                        <div class="input-group"><label for="equipo-tipo">Tipo</label><select id="equipo-tipo" required>
+                                <option value="Aire Acondicionado">Aire Acondicionado</option>
+                                <option value="Ventilación">Ventilación</option>
+                                <option value="Calefacción">Calefacción</option>
+                                <option value="Otro">Otro</option>
+                            </select></div>
+                        <div class="input-group"><label for="equipo-fecha">Fecha instalación</label><input id="equipo-fecha" name="fecha_instalacion" type="date"></div>
+                        <div class="input-group"><label for="equipo-ubicacion">Ubicación</label><input id="equipo-ubicacion" name="ubicacion" type="text"></div>
+                        <div class="input-group"><label for="equipo-estado">Estado</label><select id="equipo-estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option><option value="En Reparación">En Reparación</option></select></div>
+                        <button type="submit" class="btn-primary">Guardar equipo</button>
+                        <p id="equipo-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-tecnico" class="drawer-form hidden" data-title="Agregar técnico">
+                    <form id="tecnico-form" class="admin-form">
+                        <div class="input-group"><label for="tecnico-nombre">Nombre</label><input id="tecnico-nombre" name="nombre" type="text" required></div>
+                        <div class="input-group"><label for="tecnico-apellido">Apellido</label><input id="tecnico-apellido" name="apellido" type="text" required></div>
+                        <div class="input-group"><label for="tecnico-email">Correo</label><input id="tecnico-email" name="email" type="email" required></div>
+                        <div class="input-group"><label for="tecnico-especialidad">Especialidad</label><input id="tecnico-especialidad" name="especialidad" type="text" required></div>
+                        <div class="input-group"><label for="tecnico-telefono">Teléfono</label><input id="tecnico-telefono" name="telefono_contacto" type="tel"></div>
+                        <button type="submit" class="btn-primary">Guardar técnico</button>
+                        <p id="tecnico-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-orden" class="drawer-form hidden" data-title="Crear orden">
+                    <form id="orden-form" class="admin-form">
+                        <div class="input-group"><label for="orden-cliente">Cliente</label><select id="orden-cliente" required></select></div>
+                        <div class="input-group"><label for="orden-equipo">Equipo</label><select id="orden-equipo" required></select></div>
+                        <div class="input-group"><label for="orden-tecnico">Técnico</label><select id="orden-tecnico" required></select></div>
+                        <div class="input-group"><label for="orden-tipo">Tipo</label><select id="orden-tipo" required><option value="Preventivo">Preventivo</option><option value="Correctivo">Correctivo</option></select></div>
+                        <div class="input-group"><label for="orden-descripcion">Descripción</label><textarea id="orden-descripcion" name="descripcion" rows="4" required></textarea></div>
+                        <div class="input-group"><label for="orden-fecha">Fecha programada</label><input id="orden-fecha" name="fecha_programada" type="date"></div>
+                        <button type="submit" class="btn-primary">Guardar orden</button>
+                        <p id="orden-form-message" class="form-message"></p>
+                    </form>
+                </div>
+                <div id="drawer-form-cotizacion" class="drawer-form hidden" data-title="Crear cotización">
+                    <form id="cotizacion-form" class="admin-form">
+                        <div class="input-group"><label for="cotizacion-cliente">Cliente</label><select id="cotizacion-cliente" required></select></div>
+                        <div class="input-group"><label for="cotizacion-descripcion">Descripción</label><textarea id="cotizacion-descripcion" name="descripcion" rows="4" required></textarea></div>
+                        <div class="input-group"><label for="cotizacion-monto">Monto estimado</label><input id="cotizacion-monto" name="monto_estimado" type="number" step="0.01" required></div>
+                        <button type="submit" class="btn-primary">Guardar cotización</button>
+                        <p id="cotizacion-form-message" class="form-message"></p>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <footer>
+            <p>&copy; 2026 Proyecto Final ADSO</p>
+        </footer>
+    </div>
+    <script src="js/admin.js"></script>
+</body>
+</html>
