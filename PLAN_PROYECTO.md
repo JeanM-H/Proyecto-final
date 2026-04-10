@@ -1,4 +1,4 @@
-# Plan de Desarrollo - Sistema de Mantenimiento de Climatización
+# Plan de Desarrollo - CoolCare
 
 ## Descripción General
 Solución web para gestionar el mantenimiento de equipos de climatización.

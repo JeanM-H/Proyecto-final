@@ -1,7 +1,7 @@
 {
-  "name": "sistema-mantenimiento-climatizacion",
+  "name": "coolcare",
   "version": "1.0.0",
-  "description": "Sistema de mantenimiento de climatizacion",
+  "description": "CoolCare - Sistema de Gestión de Mantenimiento de Climatización",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

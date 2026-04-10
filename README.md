@@ -1,4 +1,4 @@
-# Sistema de Gestión de Mantenimiento de Climatización 🌬️
+# CoolCare - Sistema de Gestión de Mantenimiento de Climatización 🌬️
 
 ## Descripción
 Aplicación web desarrollada para optimizar la gestión de operaciones en empresas del sector de climatización. Permite gestionar órdenes de mantenimiento, clientes, equipos, técnicos, cotizaciones y captura de evidencias.
