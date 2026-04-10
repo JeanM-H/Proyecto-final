@@ -466,6 +466,13 @@ main#content {
     overflow: visible;
 }
 
+.section-grid,
+.card-panel,
+.table-actions,
+.action-menu {
+    overflow: visible;
+}
+
 .admin-section {
     text-align: left;
 }
