@@ -1,10 +1,29 @@
-<svg width="300" height="100" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ícono de aire fresco: círculo con líneas curvas -->
-  <circle cx="50" cy="50" r="30" fill="lightblue" stroke="#007BFF" stroke-width="3"/>
-  <path d="M35 35 Q50 20 65 35" stroke="#007BFF" stroke-width="3" fill="none"/>
-  <path d="M35 50 Q50 35 65 50" stroke="#007BFF" stroke-width="3" fill="none"/>
-  <path d="M35 65 Q50 80 65 65" stroke="#007BFF" stroke-width="3" fill="none"/>
-  
-  <!-- Texto CoolCare -->
-  <text x="100" y="60" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#007BFF">CoolCare</text>
+<svg viewBox="0 0 500 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">CoolCare</title>
+  <desc id="logoDesc">Logo para CoolCare: gestión de mantenimiento de climatización con aire fresco y cuidado profesional.</desc>
+
+  <defs>
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A74FF" />
+      <stop offset="100%" stop-color="#24C6FF" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A7E8FF" />
+      <stop offset="100%" stop-color="#40C4FF" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0A74FF" flood-opacity="0.16" />
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <path d="M70 20 C90 10, 130 10, 150 20 C180 40, 180 80, 150 100 C130 110, 90 110, 70 100 C40 80, 40 40, 70 20 Z" fill="url(#mainGradient)" />
+    <path d="M99 35 C110 25, 135 25, 146 35 C158 45, 158 63, 146 73 C135 83, 110 83, 99 73 C88 63, 88 45, 99 35 Z" fill="white" opacity="0.35" />
+    <path d="M95 40 C105 32, 130 32, 140 40 C150 48, 150 60, 140 68 C130 76, 105 76, 95 68 C85 60, 85 48, 95 40 Z" fill="url(#accentGradient)" />
+    <path d="M110 55 C116 48, 133 48, 139 55 C145 62, 145 70, 139 77 C133 84, 116 84, 110 77 C104 70, 104 62, 110 55 Z" fill="#F5FCFF" />
+  </g>
+
+  <text x="190" y="70" font-family="Segoe UI, Arial, sans-serif" font-size="62" font-weight="700" fill="#0B4EA7">Cool</text>
+  <text x="190" y="110" font-family="Segoe UI, Arial, sans-serif" font-size="48" font-weight="600" fill="#0A74FF">Care</text>
+  <path d="M190 75 C250 20, 340 25, 400 80" stroke="#24C6FF" stroke-width="6" fill="none" opacity="0.45" />
 </svg>
