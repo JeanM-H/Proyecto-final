@@ -1,6 +1,37 @@
 document.addEventListener('DOMContentLoaded', function () {
     const apiBase = window.location.origin;
+    const authToken = localStorage.getItem('coolcare_token');
+
+    if (!authToken) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     const adminTabs = document.querySelectorAll('.admin-tab');
+
+    const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('coolcare_token')}` });
+
+    const redirectToLogin = () => {
+        localStorage.removeItem('coolcare_token');
+        window.location.href = 'login.html';
+    };
+
+    const handleUnauthorized = (response) => {
+        if (response.status === 401) {
+            redirectToLogin();
+            return true;
+        }
+        return false;
+    };
+
+    const logoutLink = document.querySelector('nav a[href="login.html"]');
+    if (logoutLink) {
+        logoutLink.addEventListener('click', () => {
+            localStorage.removeItem('coolcare_token');
+            localStorage.removeItem('coolcare_role');
+        });
+    }
+
 
     const elements = {
         metricClientes: document.getElementById('metric-clientes'),
@@ -48,7 +79,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function fetchMetrics() {
         try {
-            const response = await fetch(`${apiBase}/api/dashboard-metrics`);
+            const response = await fetch(`${apiBase}/api/dashboard-metrics`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
             const data = await response.json();
             if (response.ok && data.success && data.counts) {
                 elements.metricClientes.textContent = data.counts.clientes || 0;
@@ -67,7 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.clientesTableBody.innerHTML = '<tr><td colspan="8">Cargando clientes...</td></tr>';
 
         try {
-            const response = await fetch(`${apiBase}/api/clientes`);
+            const response = await fetch(`${apiBase}/api/clientes`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
             const data = await response.json();
             if (!response.ok || !data.success) {
                 elements.clientesTableBody.innerHTML = '<tr><td colspan="9">No se pudieron cargar los clientes.</td></tr>';
@@ -142,9 +179,10 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const response = await fetch(`${apiBase}/api/clientes`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
                     body: JSON.stringify({ id: clienteId })
                 });
+                if (handleUnauthorized(response)) return;
                 const data = await response.json();
 
                 if (response.ok && data.success) {
@@ -166,7 +204,10 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.equiposTableBody.innerHTML = '<tr><td colspan="7">Cargando equipos...</td></tr>';
 
         try {
-            const response = await fetch(`${apiBase}/api/equipos`);
+            const response = await fetch(`${apiBase}/api/equipos`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
             const data = await response.json();
             if (!response.ok || !data.success) {
                 elements.equiposTableBody.innerHTML = '<tr><td colspan="7">No se pudieron cargar los equipos.</td></tr>';
@@ -203,7 +244,10 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.tecnicosTableBody.innerHTML = '<tr><td colspan="6">Cargando técnicos...</td></tr>';
 
         try {
-            const response = await fetch(`${apiBase}/api/tecnicos`);
+            const response = await fetch(`${apiBase}/api/tecnicos`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
             const data = await response.json();
             if (!response.ok || !data.success) {
                 elements.tecnicosTableBody.innerHTML = '<tr><td colspan="6">No se pudieron cargar los técnicos.</td></tr>';
@@ -241,7 +285,10 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.ordenesTableBody.innerHTML = '<tr><td colspan="7">Cargando órdenes...</td></tr>';
 
         try {
-            const response = await fetch(`${apiBase}/api/ordenes`);
+            const response = await fetch(`${apiBase}/api/ordenes`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
             const data = await response.json();
             if (!response.ok || !data.success) {
                 elements.ordenesTableBody.innerHTML = '<tr><td colspan="7">No se pudieron cargar las órdenes.</td></tr>';
@@ -277,7 +324,10 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.cotizacionesTableBody.innerHTML = '<tr><td colspan="6">Cargando cotizaciones...</td></tr>';
 
         try {
-            const response = await fetch(`${apiBase}/api/cotizaciones`);
+            const response = await fetch(`${apiBase}/api/cotizaciones`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
             const data = await response.json();
             if (!response.ok || !data.success) {
                 elements.cotizacionesTableBody.innerHTML = '<tr><td colspan="6">No se pudieron cargar las cotizaciones.</td></tr>';
@@ -334,9 +384,10 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const response = await fetch(`${apiBase}${url}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders() },
                 body: JSON.stringify(payload)
             });
+            if (handleUnauthorized(response)) return;
             const data = await response.json();
             if (response.ok && data.success) {
                 setFormMessage(messageId, successMessage, 'success');

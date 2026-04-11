@@ -10,10 +10,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('.')); // Servir archivos estáticos (HTML, CSS, JS)
 
-// Rutas
-app.use('/api/auth', require('./routes/auth'));
+// Rutas API
+app.use('/api', require('./routes/auth'));
 app.use('/api/clientes', require('./routes/clientes'));
-// Agregar más rutas aquí: equipos, tecnicos, ordenes, etc.
+app.use('/api/equipos', require('./routes/equipos'));
+app.use('/api/tecnicos', require('./routes/tecnicos'));
+app.use('/api/ordenes', require('./routes/ordenes'));
+app.use('/api/cotizaciones', require('./routes/cotizaciones'));
+app.use('/api/dashboard-metrics', require('./routes/dashboard-metrics'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {

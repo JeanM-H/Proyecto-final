@@ -59,6 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data && data.success) {
+                if (data.token) {
+                    localStorage.setItem('coolcare_token', data.token);
+                    localStorage.setItem('coolcare_role', role);
+                }
+
                 if (data.needsPasswordChange) {
                     const targetPage = `change-password.html?email=${encodeURIComponent(email)}&role=${encodeURIComponent(role)}`;
                     messageBox.textContent = `¡Bienvenido, ${role}! Redirigiendo para cambiar contraseña...`;
@@ -75,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 800);
                 }
             } else {
+                localStorage.removeItem('coolcare_token');
                 const message = (data && data.message) ? data.message : 'Credenciales inválidas.';
                 messageBox.textContent = message;
                 messageBox.style.color = '#dc2626';

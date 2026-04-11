@@ -1,0 +1,60 @@
+const express = require('express');
+const { createClient } = require('@supabase/supabase-js');
+const { verifyToken } = require('../middleware/auth');
+
+const router = express.Router();
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Faltan las variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY/SUPABASE_ANON_KEY');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('ordenes_mantenimiento')
+      .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, updated_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error('Error ordenes:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
+    }
+
+    return res.status(200).json({ success: true, ordenes: data || [] });
+  } catch (error) {
+    console.error('Error ordenes:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
+  }
+});
+
+router.post('/', verifyToken, async (req, res) => {
+  try {
+    const { cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada } = req.body;
+
+    if (!cliente_id || !equipo_id || !tecnico_id || !tipo || !descripcion) {
+      return res.status(400).json({ success: false, message: 'Datos incompletos para crear la orden' });
+    }
+
+    const { data, error } = await supabase
+      .from('ordenes_mantenimiento')
+      .insert({ cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada, estado: 'Pendiente' })
+      .single();
+
+    if (error) {
+      console.error('Error creando orden:', error);
+      return res.status(500).json({ success: false, message: 'Error al crear la orden' });
+    }
+
+    return res.status(201).json({ success: true, orden: data });
+  } catch (error) {
+    console.error('Error ordenes POST:', error);
+    return res.status(500).json({ success: false, message: 'Error al crear la orden' });
+  }
+});
+
+module.exports = router;
