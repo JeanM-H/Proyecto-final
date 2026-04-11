@@ -12,6 +12,7 @@ app.use(express.static('.')); // Servir archivos estáticos (HTML, CSS, JS)
 
 // Rutas API
 app.use('/api', require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/clientes', require('./routes/clientes'));
 app.use('/api/equipos', require('./routes/equipos'));
 app.use('/api/tecnicos', require('./routes/tecnicos'));

@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         messageBox.style.color = '#0066cc';
 
         try {
-            const response = await fetch(`${apiBase}/api/login`, {
+            const response = await fetch(`${apiBase}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
