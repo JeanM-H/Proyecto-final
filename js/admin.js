@@ -973,14 +973,22 @@ document.addEventListener('DOMContentLoaded', function () {
         drawer.classList.remove('open');
         drawerBackdrop.classList.remove('open');
         drawer.setAttribute('aria-hidden', 'true');
+        drawerForms.forEach(form => {
+            form.classList.remove('active');
+            form.classList.add('hidden');
+        });
     }
 
     function openDrawer(formType) {
         if (!drawer) return;
-        drawerForms.forEach(form => form.classList.remove('active'));
+        drawerForms.forEach(form => {
+            form.classList.remove('active');
+            form.classList.add('hidden');
+        });
         const activeForm = document.getElementById(`drawer-form-${formType}`);
         if (!activeForm) return;
         activeForm.classList.add('active');
+        activeForm.classList.remove('hidden');
         
         // Resetear formulario de cliente si está en modo crear
         if (formType === 'cliente') {
