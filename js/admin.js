@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     try {
                         const response = await fetch(`${apiBase}/api/clientes`, {
                             method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', ...authHeaders() },
                             body: JSON.stringify(payload)
                         });
                         const data = await response.json();
