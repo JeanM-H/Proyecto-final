@@ -27,7 +27,59 @@ function generateTemporaryPassword(nombre, apellido) {
   const digits = Math.floor(100 + Math.random() * 900);
   return `${base}${digits}`;
 }
+function splitUsuarioFullName(fullName = '') {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return { nombre: '', apellido: '' };
+  }
+  if (parts.length === 1) {
+    return { nombre: parts[0], apellido: '' };
+  }
+  const apellido = parts.pop();
+  return { nombre: parts.join(' '), apellido };
+}
 
+function formatClienteUsuario(cliente) {
+  if (!cliente || !cliente.usuario) return cliente;
+  const parsed = splitUsuarioFullName(cliente.usuario.nombre);
+  return {
+    ...cliente,
+    usuario: {
+      ...cliente.usuario,
+      nombre: parsed.nombre,
+      apellido: parsed.apellido
+    }
+  };
+}
+
+function buildFullName(nombre, apellido, existingFullName = '') {
+  const rawName = (nombre || '').trim();
+  const rawApellido = (apellido || '').trim();
+  const existingParts = (existingFullName || '').trim().split(/\s+/).filter(Boolean);
+
+  if (rawName && rawApellido) {
+    return `${rawName} ${rawApellido}`.trim();
+  }
+
+  if (rawName) {
+    if (existingParts.length > 1) {
+      return `${rawName} ${existingParts.slice(1).join(' ')}`.trim();
+    }
+    return rawName;
+  }
+
+  if (rawApellido) {
+    if (existingParts.length > 1) {
+      return `${existingParts.slice(0, -1).join(' ')} ${rawApellido}`.trim();
+    }
+    if (existingParts.length === 1) {
+      return `${existingParts[0]} ${rawApellido}`.trim();
+    }
+    return rawApellido;
+  }
+
+  return existingFullName.trim();
+}
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -49,7 +101,9 @@ module.exports = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
       }
 
-      return res.status(200).json({ success: true, clientes: data || [] });
+      const clientes = (data || []).map(formatClienteUsuario);
+
+      return res.status(200).json({ success: true, clientes });
     } catch (error) {
       console.error('Error clientes:', error);
       return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
@@ -112,10 +166,23 @@ module.exports = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Error al crear el cliente' });
       }
 
+      const { data: clienteFinal, error: clienteFinalError } = await supabase
+        .from('clientes')
+        .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
+        .eq('usuario_id', usuario.id)
+        .single();
+
+      if (clienteFinalError) {
+        console.error('Error obteniendo cliente creado:', clienteFinalError);
+        return res.status(500).json({ success: false, message: 'Error al obtener el cliente creado' });
+      }
+
+      const clienteConUsuario = formatClienteUsuario(clienteFinal);
+
       return res.status(201).json({
         success: true,
         message: 'Cliente creado correctamente',
-        cliente,
+        cliente: clienteConUsuario,
         generatedPassword: password
       });
     } catch (error) {
@@ -127,28 +194,119 @@ module.exports = async (req, res) => {
   if (req.method === 'PUT') {
     try {
       const data = await parseJsonBody(req);
-      const { id, empresa, telefono, direccion, ciudad, pais } = data;
+      const { id, nombre, apellido, email, empresa, telefono, direccion, ciudad, pais } = data;
 
-      if (!id || !empresa) {
-        return res.status(400).json({ success: false, message: 'ID y empresa son requeridos' });
+      if (!id) {
+        return res.status(400).json({ success: false, message: 'ID es requerido para actualizar el cliente' });
       }
 
-      const { data: cliente, error: updateError } = await supabase
+      const { data: cliente, error: clienteError } = await supabase
         .from('clientes')
-        .update({ empresa, telefono, direccion, ciudad, pais })
+        .select('usuario_id')
         .eq('id', id)
-        .select()
         .single();
+
+      if (clienteError || !cliente) {
+        console.error('Error obteniendo cliente para actualizar:', clienteError);
+        return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+      }
+
+      if (!cliente.usuario_id) {
+        console.log('[PUT /api/clientes] Cliente sin usuario_id');
+        return res.status(400).json({ success: false, message: 'Cliente sin usuario asociado' });
+      }
+
+      let existingUserName = '';
+      if (nombre || apellido) {
+        const { data: usuarioActual, error: userFetchError } = await supabase
+          .from('usuarios')
+          .select('nombre')
+          .eq('id', cliente.usuario_id)
+          .single();
+
+        if (userFetchError) {
+          console.error('Error obteniendo usuario actual para full name:', userFetchError);
+          return res.status(500).json({ success: false, message: 'Error al obtener datos del usuario' });
+        }
+
+        existingUserName = usuarioActual?.nombre || '';
+      }
+
+      const clienteUpdate = {};
+      if (empresa) clienteUpdate.empresa = empresa;
+      if (telefono) clienteUpdate.telefono = telefono;
+      if (direccion) clienteUpdate.direccion = direccion;
+      if (ciudad) clienteUpdate.ciudad = ciudad;
+      if (pais) clienteUpdate.pais = pais;
+
+      const usuarioUpdate = {};
+      if (nombre || apellido) {
+        const fullName = buildFullName(nombre, apellido, existingUserName);
+        if (fullName) usuarioUpdate.nombre = fullName;
+      }
+      if (email) usuarioUpdate.email = email;
+
+      console.log('[PUT /api/clientes] clienteUpdate:', clienteUpdate, 'usuarioUpdate:', usuarioUpdate);
+
+      if (Object.keys(clienteUpdate).length === 0 && Object.keys(usuarioUpdate).length === 0) {
+        console.log('[PUT /api/clientes] Sin cambios para actualizar');
+        return res.status(400).json({ success: false, message: 'Debe proporcionar al menos un dato para actualizar' });
+      }
+
+      if (Object.keys(usuarioUpdate).length > 0) {
+        console.log('[PUT /api/clientes] Actualizando usuario:', cliente.usuario_id, 'con datos:', usuarioUpdate);
+        const { error: userUpdateError } = await supabase
+          .from('usuarios')
+          .update(usuarioUpdate)
+          .eq('id', cliente.usuario_id);
+
+        if (userUpdateError) {
+          console.error('Error actualizando usuario del cliente:', userUpdateError);
+          return res.status(500).json({ success: false, message: 'Error al actualizar los datos del usuario' });
+        }
+        console.log('[PUT /api/clientes] Usuario actualizado exitosamente');
+      }
+
+      let updatedCliente = null;
+      let updateError = null;
+
+      if (Object.keys(clienteUpdate).length > 0) {
+        console.log('[PUT /api/clientes] Actualizando cliente:', id, 'con datos:', clienteUpdate);
+        const result = await supabase
+          .from('clientes')
+          .update(clienteUpdate)
+          .eq('id', id)
+          .select()
+          .single();
+        updatedCliente = result.data;
+        updateError = result.error;
+        console.log('[PUT /api/clientes] Cliente actualizado:', updatedCliente, 'Error:', updateError);
+      }
 
       if (updateError) {
         console.error('Error actualizando cliente:', updateError);
         return res.status(500).json({ success: false, message: 'Error al actualizar cliente' });
       }
 
+      const { data: clienteFinal, error: clienteFinalError } = await supabase
+        .from('clientes')
+        .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
+        .eq('id', id)
+        .single();
+
+      if (clienteFinalError) {
+        console.error('[PUT /api/clientes] Error obteniendo cliente final:', clienteFinalError);
+        return res.status(500).json({ success: false, message: 'Error al obtener el cliente actualizado' });
+      }
+
+      const finalCliente = formatClienteUsuario(clienteFinal);
+
+      console.log('[PUT /api/clientes] Cliente final retornado:', finalCliente);
+
       return res.status(200).json({
         success: true,
         message: 'Cliente actualizado correctamente',
-        cliente
+        cliente: finalCliente
       });
     } catch (error) {
       console.error('Error clientes PUT:', error);
