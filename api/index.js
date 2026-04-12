@@ -62,10 +62,11 @@ module.exports = async (req, res) => {
   if (handlerPath) {
     try {
       const handler = require(path.join(__dirname, handlerPath));
-      return handler(req, res);
+      await handler(req, res);
+      return;
     } catch (error) {
       console.error('Error en ruta API:', error);
-      return res.status(500).json({ success: false, message: 'Error interno de la API' });
+      return res.status(500).json({ success: false, message: 'Error interno de la API', detail: error.message });
     }
   }
 
