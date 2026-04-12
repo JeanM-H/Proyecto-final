@@ -138,18 +138,37 @@ module.exports = async (req, res) => {
       }
 
       const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`;
-      const { data: usuario, error: insertUserError } = await supabase
+      let usuarioPayload = {
+        nombre: nombreCompleto,
+        email,
+        password: hashedPassword,
+        rol: 'Cliente',
+        estado: true,
+        needs_password_change: true
+      };
+
+      let usuario;
+      let insertUserError;
+      ({ data: usuario, error: insertUserError } = await supabase
         .from('usuarios')
-        .insert({
+        .insert(usuarioPayload)
+        .select('id')
+        .single());
+
+      if (insertUserError && insertUserError.message && insertUserError.message.includes('needs_password_change')) {
+        usuarioPayload = {
           nombre: nombreCompleto,
           email,
           password: hashedPassword,
           rol: 'Cliente',
-          estado: true,
-          needs_password_change: true
-        })
-        .select('id')
-        .single();
+          estado: true
+        };
+        ({ data: usuario, error: insertUserError } = await supabase
+          .from('usuarios')
+          .insert(usuarioPayload)
+          .select('id')
+          .single());
+      }
 
       if (insertUserError) {
         console.error('Error creando usuario cliente:', insertUserError);
