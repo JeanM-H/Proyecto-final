@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${cliente.id}</td>
-                    <td>${cliente.usuario?.nombre || 'N/A'}</td>
+                    <td>${[cliente.usuario?.nombre, cliente.usuario?.apellido].filter(Boolean).join(' ') || 'N/A'}</td>
                     <td>${cliente.empresa || 'N/A'}</td>
                     <td>${cliente.usuario?.email || 'N/A'}</td>
                     <td>${cliente.telefono || 'N/A'}</td>

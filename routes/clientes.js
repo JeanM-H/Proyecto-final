@@ -158,7 +158,7 @@ router.put('/', verifyToken, async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Cliente actualizado correctamente',
-      cliente
+      cliente: updatedCliente
     });
   } catch (error) {
     console.error('Error clientes PUT:', error);
