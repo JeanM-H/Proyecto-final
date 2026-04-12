@@ -108,10 +108,11 @@
                                                 <th>Serial</th>
                                                 <th>Tipo</th>
                                                 <th>Estado</th>
+                                                <th>Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="equipos-table-body">
-                                            <tr><td colspan="7">Cargando equipos...</td></tr>
+                                            <tr><td colspan="8">Cargando equipos...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -138,10 +139,11 @@
                                                 <th>Especialidad</th>
                                                 <th>Teléfono</th>
                                                 <th>Disponible</th>
+                                                <th>Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tecnicos-table-body">
-                                            <tr><td colspan="6">Cargando técnicos...</td></tr>
+                                            <tr><td colspan="7">Cargando técnicos...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -169,10 +171,11 @@
                                                 <th>Tipo</th>
                                                 <th>Estado</th>
                                                 <th>Programada</th>
+                                                <th>Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="ordenes-table-body">
-                                            <tr><td colspan="7">Cargando órdenes...</td></tr>
+                                            <tr><td colspan="8">Cargando órdenes...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -199,10 +202,11 @@
                                                 <th>Monto</th>
                                                 <th>Estado</th>
                                                 <th>Solicitud</th>
+                                                <th>Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="cotizaciones-table-body">
-                                            <tr><td colspan="6">Cargando cotizaciones...</td></tr>
+                                            <tr><td colspan="7">Cargando cotizaciones...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -287,6 +291,62 @@
                         <div class="input-group"><label for="cotizacion-monto">Monto estimado</label><input id="cotizacion-monto" name="monto_estimado" type="number" step="0.01" required></div>
                         <button type="submit" class="btn-primary">Guardar cotización</button>
                         <p id="cotizacion-form-message" class="form-message"></p>
+                    </form>
+                </div>
+
+                <!-- Formularios de edición -->
+                <div id="drawer-form-edit-equipo" class="drawer-form hidden" data-title="Editar equipo">
+                    <form id="edit-equipo-form" class="admin-form">
+                        <div class="input-group"><label for="edit-equipo-cliente">Cliente</label><select id="edit-equipo-cliente" required></select></div>
+                        <div class="input-group"><label for="edit-equipo-marca">Marca</label><input id="edit-equipo-marca" name="marca" type="text" required></div>
+                        <div class="input-group"><label for="edit-equipo-modelo">Modelo</label><input id="edit-equipo-modelo" name="modelo" type="text" required></div>
+                        <div class="input-group"><label for="edit-equipo-serial">Serial</label><input id="edit-equipo-serial" name="serial" type="text" required></div>
+                        <div class="input-group"><label for="edit-equipo-tipo">Tipo</label><select id="edit-equipo-tipo" required>
+                                <option value="Aire Acondicionado">Aire Acondicionado</option>
+                                <option value="Ventilación">Ventilación</option>
+                                <option value="Calefacción">Calefacción</option>
+                                <option value="Otro">Otro</option>
+                            </select></div>
+                        <div class="input-group"><label for="edit-equipo-fecha">Fecha instalación</label><input id="edit-equipo-fecha" name="fecha_instalacion" type="date"></div>
+                        <div class="input-group"><label for="edit-equipo-ubicacion">Ubicación</label><input id="edit-equipo-ubicacion" name="ubicacion" type="text"></div>
+                        <div class="input-group"><label for="edit-equipo-estado">Estado</label><select id="edit-equipo-estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option><option value="En Reparación">En Reparación</option></select></div>
+                        <button type="submit" class="btn-primary">Actualizar equipo</button>
+                        <p id="edit-equipo-form-message" class="form-message"></p>
+                    </form>
+                </div>
+
+                <div id="drawer-form-edit-tecnico" class="drawer-form hidden" data-title="Editar técnico">
+                    <form id="edit-tecnico-form" class="admin-form">
+                        <div class="input-group"><label for="edit-tecnico-especialidad">Especialidad</label><input id="edit-tecnico-especialidad" name="especialidad" type="text" required></div>
+                        <div class="input-group"><label for="edit-tecnico-telefono">Teléfono</label><input id="edit-tecnico-telefono" name="telefono_contacto" type="tel"></div>
+                        <div class="input-group"><label for="edit-tecnico-disponible">Disponible</label><select id="edit-tecnico-disponible"><option value="true">Sí</option><option value="false">No</option></select></div>
+                        <button type="submit" class="btn-primary">Actualizar técnico</button>
+                        <p id="edit-tecnico-form-message" class="form-message"></p>
+                    </form>
+                </div>
+
+                <div id="drawer-form-edit-orden" class="drawer-form hidden" data-title="Editar orden">
+                    <form id="edit-orden-form" class="admin-form">
+                        <div class="input-group"><label for="edit-orden-cliente">Cliente</label><select id="edit-orden-cliente" required></select></div>
+                        <div class="input-group"><label for="edit-orden-equipo">Equipo</label><select id="edit-orden-equipo" required></select></div>
+                        <div class="input-group"><label for="edit-orden-tecnico">Técnico</label><select id="edit-orden-tecnico" required></select></div>
+                        <div class="input-group"><label for="edit-orden-tipo">Tipo</label><select id="edit-orden-tipo" required><option value="Preventivo">Preventivo</option><option value="Correctivo">Correctivo</option></select></div>
+                        <div class="input-group"><label for="edit-orden-descripcion">Descripción</label><textarea id="edit-orden-descripcion" name="descripcion" rows="4" required></textarea></div>
+                        <div class="input-group"><label for="edit-orden-fecha">Fecha programada</label><input id="edit-orden-fecha" name="fecha_programada" type="date"></div>
+                        <div class="input-group"><label for="edit-orden-estado">Estado</label><select id="edit-orden-estado"><option value="Pendiente">Pendiente</option><option value="Asignada">Asignada</option><option value="En Progreso">En Progreso</option><option value="Completada">Completada</option><option value="Cancelada">Cancelada</option></select></div>
+                        <button type="submit" class="btn-primary">Actualizar orden</button>
+                        <p id="edit-orden-form-message" class="form-message"></p>
+                    </form>
+                </div>
+
+                <div id="drawer-form-edit-cotizacion" class="drawer-form hidden" data-title="Editar cotización">
+                    <form id="edit-cotizacion-form" class="admin-form">
+                        <div class="input-group"><label for="edit-cotizacion-cliente">Cliente</label><select id="edit-cotizacion-cliente" required></select></div>
+                        <div class="input-group"><label for="edit-cotizacion-descripcion">Descripción</label><textarea id="edit-cotizacion-descripcion" name="descripcion" rows="4" required></textarea></div>
+                        <div class="input-group"><label for="edit-cotizacion-monto">Monto estimado</label><input id="edit-cotizacion-monto" name="monto_estimado" type="number" step="0.01" required></div>
+                        <div class="input-group"><label for="edit-cotizacion-estado">Estado</label><select id="edit-cotizacion-estado"><option value="Pendiente">Pendiente</option><option value="Aprobada">Aprobada</option><option value="Rechazada">Rechazada</option></select></div>
+                        <button type="submit" class="btn-primary">Actualizar cotización</button>
+                        <p id="edit-cotizacion-form-message" class="form-message"></p>
                     </form>
                 </div>
             </div>

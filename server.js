@@ -18,6 +18,7 @@ app.use('/api/equipos', require('./routes/equipos'));
 app.use('/api/tecnicos', require('./routes/tecnicos'));
 app.use('/api/ordenes', require('./routes/ordenes'));
 app.use('/api/cotizaciones', require('./routes/cotizaciones'));
+app.use('/api/mantenimientos', require('./routes/mantenimientos'));
 app.use('/api/dashboard-metrics', require('./routes/dashboard-metrics'));
 app.use('/api/debug', require('./routes/debug')); // DEBUG ONLY
 

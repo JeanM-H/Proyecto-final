@@ -32,6 +32,32 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/:id', verifyToken, async (req, res) => {
+  try {
+    const cotizacionId = Number(req.params.id);
+
+    const { data, error } = await supabase
+      .from('cotizaciones')
+      .select('id, cliente_id, descripcion, monto_estimado, estado, fecha_solicitud, fecha_respuesta, created_at, cliente:clientes(empresa)')
+      .eq('id', cotizacionId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error cotización detalle:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener cotización' });
+    }
+
+    if (!data) {
+      return res.status(404).json({ success: false, message: 'Cotización no encontrada' });
+    }
+
+    return res.status(200).json({ success: true, cotizacion: data });
+  } catch (error) {
+    console.error('Error cotización detalle:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener cotización' });
+  }
+});
+
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { cliente_id, descripcion, monto_estimado } = req.body;
@@ -54,6 +80,60 @@ router.post('/', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error cotizaciones POST:', error);
     return res.status(500).json({ success: false, message: 'Error al crear la cotización' });
+  }
+});
+
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    const cotizacionId = Number(req.params.id);
+    const { estado, descripcion, monto_estimado, fecha_respuesta } = req.body;
+
+    const updates = {};
+    if (estado) updates.estado = estado;
+    if (descripcion) updates.descripcion = descripcion;
+    if (monto_estimado) updates.monto_estimado = monto_estimado;
+    if (fecha_respuesta) updates.fecha_respuesta = fecha_respuesta;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: 'No hay campos para actualizar' });
+    }
+
+    const { data, error } = await supabase
+      .from('cotizaciones')
+      .update(updates)
+      .eq('id', cotizacionId)
+      .single();
+
+    if (error) {
+      console.error('Error actualizando cotización:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar la cotización' });
+    }
+
+    return res.status(200).json({ success: true, cotizacion: data });
+  } catch (error) {
+    console.error('Error cotizaciones PUT:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar la cotización' });
+  }
+});
+
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const cotizacionId = Number(req.params.id);
+
+    const { error } = await supabase
+      .from('cotizaciones')
+      .delete()
+      .eq('id', cotizacionId);
+
+    if (error) {
+      console.error('Error eliminando cotización:', error);
+      return res.status(500).json({ success: false, message: 'Error al eliminar la cotización' });
+    }
+
+    return res.status(200).json({ success: true, message: 'Cotización eliminada correctamente' });
+  } catch (error) {
+    console.error('Error cotizaciones DELETE:', error);
+    return res.status(500).json({ success: false, message: 'Error al eliminar la cotización' });
   }
 });
 

@@ -199,6 +199,228 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function handleEditEquipo(event) {
+        const equipoId = parseInt(event.target.dataset.id);
+        const equipo = options.equipos.find(e => e.id === equipoId);
+
+        if (!equipo) return;
+
+        document.getElementById('edit-equipo-cliente').value = equipo.cliente_id || '';
+        document.getElementById('edit-equipo-marca').value = equipo.marca || '';
+        document.getElementById('edit-equipo-modelo').value = equipo.modelo || '';
+        document.getElementById('edit-equipo-serial').value = equipo.serial || '';
+        document.getElementById('edit-equipo-tipo').value = equipo.tipo || '';
+        document.getElementById('edit-equipo-fecha').value = equipo.fecha_instalacion ? new Date(equipo.fecha_instalacion).toISOString().split('T')[0] : '';
+        document.getElementById('edit-equipo-ubicacion').value = equipo.ubicacion || '';
+        document.getElementById('edit-equipo-estado').value = equipo.estado || 'Activo';
+
+        const drawerTitle = document.getElementById('drawer-title');
+        const editEquipoForm = document.getElementById('edit-equipo-form');
+        
+        drawerTitle.textContent = `Editar Equipo - ID: ${equipoId}`;
+        editEquipoForm.dataset.equipoId = equipoId;
+
+        openDrawer('edit-equipo');
+    }
+
+    async function handleDeleteEquipo(event) {
+        const equipoId = parseInt(event.target.dataset.id);
+        
+        if (confirm('¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.')) {
+            try {
+                const response = await fetch(`${apiBase}/api/equipos`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify({ id: equipoId })
+                });
+                if (handleUnauthorized(response)) return;
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setFormMessage('edit-equipo-form-message', 'Equipo eliminado correctamente.', 'success');
+                    fetchEquipos();
+                    fetchMetrics();
+                } else {
+                    setFormMessage('edit-equipo-form-message', data.message || 'Error al eliminar equipo.', 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando equipo:', error);
+                setFormMessage('edit-equipo-form-message', 'Error de conexión.', 'error');
+            }
+        }
+    }
+
+    async function handleEditTecnico(event) {
+        const tecnicoId = parseInt(event.target.dataset.id);
+        const tecnico = options.tecnicos.find(t => t.id === tecnicoId);
+
+        if (!tecnico) return;
+
+        document.getElementById('edit-tecnico-especialidad').value = tecnico.especialidad || '';
+        document.getElementById('edit-tecnico-telefono').value = tecnico.telefono_contacto || '';
+        document.getElementById('edit-tecnico-disponible').value = tecnico.disponible ? 'true' : 'false';
+
+        const drawerTitle = document.getElementById('drawer-title');
+        const editTecnicoForm = document.getElementById('edit-tecnico-form');
+        
+        drawerTitle.textContent = `Editar Técnico - ID: ${tecnicoId}`;
+        editTecnicoForm.dataset.tecnicoId = tecnicoId;
+
+        openDrawer('edit-tecnico');
+    }
+
+    async function handleDeleteTecnico(event) {
+        const tecnicoId = parseInt(event.target.dataset.id);
+        
+        if (confirm('¿Estás seguro de que deseas eliminar este técnico? Esta acción no se puede deshacer.')) {
+            try {
+                const response = await fetch(`${apiBase}/api/tecnicos`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify({ id: tecnicoId })
+                });
+                if (handleUnauthorized(response)) return;
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setFormMessage('edit-tecnico-form-message', 'Técnico eliminado correctamente.', 'success');
+                    fetchTecnicos();
+                    fetchMetrics();
+                } else {
+                    setFormMessage('edit-tecnico-form-message', data.message || 'Error al eliminar técnico.', 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando técnico:', error);
+                setFormMessage('edit-tecnico-form-message', 'Error de conexión.', 'error');
+            }
+        }
+    }
+
+    async function handleEditOrden(event) {
+        const ordenId = parseInt(event.target.dataset.id);
+        const orden = await fetchOrdenById(ordenId);
+
+        if (!orden) return;
+
+        document.getElementById('edit-orden-cliente').value = orden.cliente_id || '';
+        document.getElementById('edit-orden-equipo').value = orden.equipo_id || '';
+        document.getElementById('edit-orden-tecnico').value = orden.tecnico_id || '';
+        document.getElementById('edit-orden-tipo').value = orden.tipo || '';
+        document.getElementById('edit-orden-descripcion').value = orden.descripcion || '';
+        document.getElementById('edit-orden-fecha').value = orden.fecha_programada ? new Date(orden.fecha_programada).toISOString().split('T')[0] : '';
+        document.getElementById('edit-orden-estado').value = orden.estado || 'Pendiente';
+
+        const drawerTitle = document.getElementById('drawer-title');
+        const editOrdenForm = document.getElementById('edit-orden-form');
+        
+        drawerTitle.textContent = `Editar Orden - ID: ${ordenId}`;
+        editOrdenForm.dataset.ordenId = ordenId;
+
+        openDrawer('edit-orden');
+    }
+
+    async function handleDeleteOrden(event) {
+        const ordenId = parseInt(event.target.dataset.id);
+        
+        if (confirm('¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer.')) {
+            try {
+                const response = await fetch(`${apiBase}/api/ordenes`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify({ id: ordenId })
+                });
+                if (handleUnauthorized(response)) return;
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setFormMessage('edit-orden-form-message', 'Orden eliminada correctamente.', 'success');
+                    fetchOrdenes();
+                    fetchMetrics();
+                } else {
+                    setFormMessage('edit-orden-form-message', data.message || 'Error al eliminar orden.', 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando orden:', error);
+                setFormMessage('edit-orden-form-message', 'Error de conexión.', 'error');
+            }
+        }
+    }
+
+    async function handleEditCotizacion(event) {
+        const cotizacionId = parseInt(event.target.dataset.id);
+        const cotizacion = await fetchCotizacionById(cotizacionId);
+
+        if (!cotizacion) return;
+
+        document.getElementById('edit-cotizacion-cliente').value = cotizacion.cliente_id || '';
+        document.getElementById('edit-cotizacion-descripcion').value = cotizacion.descripcion || '';
+        document.getElementById('edit-cotizacion-monto').value = cotizacion.monto_estimado || '';
+        document.getElementById('edit-cotizacion-estado').value = cotizacion.estado || 'Pendiente';
+
+        const drawerTitle = document.getElementById('drawer-title');
+        const editCotizacionForm = document.getElementById('edit-cotizacion-form');
+        
+        drawerTitle.textContent = `Editar Cotización - ID: ${cotizacionId}`;
+        editCotizacionForm.dataset.cotizacionId = cotizacionId;
+
+        openDrawer('edit-cotizacion');
+    }
+
+    async function handleDeleteCotizacion(event) {
+        const cotizacionId = parseInt(event.target.dataset.id);
+        
+        if (confirm('¿Estás seguro de que deseas eliminar esta cotización? Esta acción no se puede deshacer.')) {
+            try {
+                const response = await fetch(`${apiBase}/api/cotizaciones`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify({ id: cotizacionId })
+                });
+                if (handleUnauthorized(response)) return;
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setFormMessage('edit-cotizacion-form-message', 'Cotización eliminada correctamente.', 'success');
+                    fetchCotizaciones();
+                    fetchMetrics();
+                } else {
+                    setFormMessage('edit-cotizacion-form-message', data.message || 'Error al eliminar cotización.', 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando cotización:', error);
+                setFormMessage('edit-cotizacion-form-message', 'Error de conexión.', 'error');
+            }
+        }
+    }
+
+    async function fetchOrdenById(ordenId) {
+        try {
+            const response = await fetch(`${apiBase}/api/ordenes/${ordenId}`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return null;
+            const data = await response.json();
+            return response.ok && data.success ? data.orden : null;
+        } catch (error) {
+            console.error('Error obteniendo orden:', error);
+            return null;
+        }
+    }
+
+    async function fetchCotizacionById(cotizacionId) {
+        try {
+            const response = await fetch(`${apiBase}/api/cotizaciones/${cotizacionId}`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return null;
+            const data = await response.json();
+            return response.ok && data.success ? data.cotizacion : null;
+        } catch (error) {
+            console.error('Error obteniendo cotización:', error);
+            return null;
+        }
+    }
+
     async function fetchEquipos() {
         if (!elements.equiposTableBody) return;
         elements.equiposTableBody.innerHTML = '<tr><td colspan="7">Cargando equipos...</td></tr>';
@@ -229,6 +451,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${equipo.serial}</td>
                     <td>${equipo.tipo}</td>
                     <td>${equipo.estado}</td>
+                    <td class="table-actions">
+                        <div class="action-menu">
+                            <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${equipo.id}">⋮</button>
+                            <div class="action-menu-dropdown hidden" role="menu">
+                                <button type="button" class="action-menu-item action-menu-edit" data-id="${equipo.id}" role="menuitem">Editar</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${equipo.id}" role="menuitem">Eliminar</button>
+                            </div>
+                        </div>
+                    </td>
                 `;
                 elements.equiposTableBody.appendChild(row);
             });
@@ -270,6 +501,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${tecnico.especialidad}</td>
                     <td>${tecnico.telefono_contacto || 'N/A'}</td>
                     <td>${tecnico.disponible ? 'Sí' : 'No'}</td>
+                    <td class="table-actions">
+                        <div class="action-menu">
+                            <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${tecnico.id}">⋮</button>
+                            <div class="action-menu-dropdown hidden" role="menu">
+                                <button type="button" class="action-menu-item action-menu-edit" data-id="${tecnico.id}" role="menuitem">Editar</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${tecnico.id}" role="menuitem">Eliminar</button>
+                            </div>
+                        </div>
+                    </td>
                 `;
                 elements.tecnicosTableBody.appendChild(row);
             });
@@ -310,6 +550,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${orden.tipo}</td>
                     <td>${orden.estado}</td>
                     <td>${orden.fecha_programada ? new Date(orden.fecha_programada).toLocaleDateString('es-CO') : 'No definida'}</td>
+                    <td class="table-actions">
+                        <div class="action-menu">
+                            <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${orden.id}">⋮</button>
+                            <div class="action-menu-dropdown hidden" role="menu">
+                                <button type="button" class="action-menu-item action-menu-edit" data-id="${orden.id}" role="menuitem">Editar</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${orden.id}" role="menuitem">Eliminar</button>
+                            </div>
+                        </div>
+                    </td>
                 `;
                 elements.ordenesTableBody.appendChild(row);
             });
@@ -348,6 +597,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${Number(cotizacion.monto_estimado).toFixed(2)}</td>
                     <td>${cotizacion.estado}</td>
                     <td>${cotizacion.fecha_solicitud ? new Date(cotizacion.fecha_solicitud).toLocaleDateString('es-CO') : 'N/A'}</td>
+                    <td class="table-actions">
+                        <div class="action-menu">
+                            <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${cotizacion.id}">⋮</button>
+                            <div class="action-menu-dropdown hidden" role="menu">
+                                <button type="button" class="action-menu-item action-menu-edit" data-id="${cotizacion.id}" role="menuitem">Editar</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${cotizacion.id}" role="menuitem">Eliminar</button>
+                            </div>
+                        </div>
+                    </td>
                 `;
                 elements.cotizacionesTableBody.appendChild(row);
             });
@@ -361,10 +619,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const clienteSelects = [
             document.getElementById('equipo-cliente'),
             document.getElementById('orden-cliente'),
-            document.getElementById('cotizacion-cliente')
+            document.getElementById('cotizacion-cliente'),
+            document.getElementById('edit-equipo-cliente'),
+            document.getElementById('edit-orden-cliente'),
+            document.getElementById('edit-cotizacion-cliente')
         ].filter(Boolean);
         const tecnicoSelect = document.getElementById('orden-tecnico');
+        const tecnicoEditSelect = document.getElementById('edit-orden-tecnico');
         const equipoSelect = document.getElementById('orden-equipo');
+        const equipoEditSelect = document.getElementById('edit-orden-equipo');
 
         const clienteOptions = options.clientes.map(cliente => `<option value="${cliente.id}">${cliente.empresa || `Cliente ${cliente.id}`}</option>`).join('');
         clienteSelects.forEach(select => {
@@ -375,8 +638,16 @@ document.addEventListener('DOMContentLoaded', function () {
             equipoSelect.innerHTML = '<option value="">Seleccione un equipo</option>' + options.equipos.map(e => `<option value="${e.id}">${e.marca} ${e.modelo} (${e.serial})</option>`).join('');
         }
 
+        if (equipoEditSelect) {
+            equipoEditSelect.innerHTML = '<option value="">Seleccione un equipo</option>' + options.equipos.map(e => `<option value="${e.id}">${e.marca} ${e.modelo} (${e.serial})</option>`).join('');
+        }
+
         if (tecnicoSelect) {
             tecnicoSelect.innerHTML = '<option value="">Seleccione un técnico</option>' + options.tecnicos.map(t => `<option value="${t.id}">${t.usuario?.nombre || `Técnico ${t.id}`}</option>`).join('');
+        }
+
+        if (tecnicoEditSelect) {
+            tecnicoEditSelect.innerHTML = '<option value="">Seleccione un técnico</option>' + options.tecnicos.map(t => `<option value="${t.id}">${t.usuario?.nombre || `Técnico ${t.id}`}</option>`).join('');
         }
     }
 
@@ -532,6 +803,169 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, 'Cotización creada correctamente.', 'cotizacion-form', 'cotizacion-form-message', fetchCotizaciones);
             });
         }
+
+        // Formularios de edición
+        const editEquipoForm = document.getElementById('edit-equipo-form');
+        if (editEquipoForm) {
+            editEquipoForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const equipoId = parseInt(editEquipoForm.dataset.equipoId);
+
+                const payload = {
+                    id: equipoId,
+                    cliente_id: Number(document.getElementById('edit-equipo-cliente').value),
+                    marca: document.getElementById('edit-equipo-marca').value.trim(),
+                    modelo: document.getElementById('edit-equipo-modelo').value.trim(),
+                    serial: document.getElementById('edit-equipo-serial').value.trim(),
+                    tipo: document.getElementById('edit-equipo-tipo').value,
+                    fecha_instalacion: document.getElementById('edit-equipo-fecha').value || null,
+                    ubicacion: document.getElementById('edit-equipo-ubicacion').value.trim(),
+                    estado: document.getElementById('edit-equipo-estado').value
+                };
+
+                try {
+                    const response = await fetch(`${apiBase}/api/equipos`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                        body: JSON.stringify(payload)
+                    });
+                    if (handleUnauthorized(response)) return;
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        setFormMessage('edit-equipo-form-message', 'Equipo actualizado correctamente.', 'success');
+                        setTimeout(() => {
+                            closeDrawer();
+                            fetchEquipos();
+                            fetchMetrics();
+                        }, 1000);
+                    } else {
+                        setFormMessage('edit-equipo-form-message', data.message || 'Error al actualizar equipo.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error actualizando equipo:', error);
+                    setFormMessage('edit-equipo-form-message', 'Error de conexión.', 'error');
+                }
+            });
+        }
+
+        const editTecnicoForm = document.getElementById('edit-tecnico-form');
+        if (editTecnicoForm) {
+            editTecnicoForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const tecnicoId = parseInt(editTecnicoForm.dataset.tecnicoId);
+
+                const payload = {
+                    id: tecnicoId,
+                    especialidad: document.getElementById('edit-tecnico-especialidad').value.trim(),
+                    telefono_contacto: document.getElementById('edit-tecnico-telefono').value.trim(),
+                    disponible: document.getElementById('edit-tecnico-disponible').value === 'true'
+                };
+
+                try {
+                    const response = await fetch(`${apiBase}/api/tecnicos`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                        body: JSON.stringify(payload)
+                    });
+                    if (handleUnauthorized(response)) return;
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        setFormMessage('edit-tecnico-form-message', 'Técnico actualizado correctamente.', 'success');
+                        setTimeout(() => {
+                            closeDrawer();
+                            fetchTecnicos();
+                            fetchMetrics();
+                        }, 1000);
+                    } else {
+                        setFormMessage('edit-tecnico-form-message', data.message || 'Error al actualizar técnico.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error actualizando técnico:', error);
+                    setFormMessage('edit-tecnico-form-message', 'Error de conexión.', 'error');
+                }
+            });
+        }
+
+        const editOrdenForm = document.getElementById('edit-orden-form');
+        if (editOrdenForm) {
+            editOrdenForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const ordenId = parseInt(editOrdenForm.dataset.ordenId);
+
+                const payload = {
+                    id: ordenId,
+                    cliente_id: Number(document.getElementById('edit-orden-cliente').value),
+                    equipo_id: Number(document.getElementById('edit-orden-equipo').value),
+                    tecnico_id: Number(document.getElementById('edit-orden-tecnico').value),
+                    tipo: document.getElementById('edit-orden-tipo').value,
+                    descripcion: document.getElementById('edit-orden-descripcion').value.trim(),
+                    fecha_programada: document.getElementById('edit-orden-fecha').value || null,
+                    estado: document.getElementById('edit-orden-estado').value
+                };
+
+                try {
+                    const response = await fetch(`${apiBase}/api/ordenes`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                        body: JSON.stringify(payload)
+                    });
+                    if (handleUnauthorized(response)) return;
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        setFormMessage('edit-orden-form-message', 'Orden actualizada correctamente.', 'success');
+                        setTimeout(() => {
+                            closeDrawer();
+                            fetchOrdenes();
+                            fetchMetrics();
+                        }, 1000);
+                    } else {
+                        setFormMessage('edit-orden-form-message', data.message || 'Error al actualizar orden.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error actualizando orden:', error);
+                    setFormMessage('edit-orden-form-message', 'Error de conexión.', 'error');
+                }
+            });
+        }
+
+        const editCotizacionForm = document.getElementById('edit-cotizacion-form');
+        if (editCotizacionForm) {
+            editCotizacionForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const cotizacionId = parseInt(editCotizacionForm.dataset.cotizacionId);
+
+                const payload = {
+                    id: cotizacionId,
+                    cliente_id: Number(document.getElementById('edit-cotizacion-cliente').value),
+                    descripcion: document.getElementById('edit-cotizacion-descripcion').value.trim(),
+                    monto_estimado: Number(document.getElementById('edit-cotizacion-monto').value),
+                    estado: document.getElementById('edit-cotizacion-estado').value
+                };
+
+                try {
+                    const response = await fetch(`${apiBase}/api/cotizaciones`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                        body: JSON.stringify(payload)
+                    });
+                    if (handleUnauthorized(response)) return;
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        setFormMessage('edit-cotizacion-form-message', 'Cotización actualizada correctamente.', 'success');
+                        setTimeout(() => {
+                            closeDrawer();
+                            fetchCotizaciones();
+                            fetchMetrics();
+                        }, 1000);
+                    } else {
+                        setFormMessage('edit-cotizacion-form-message', data.message || 'Error al actualizar cotización.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error actualizando cotización:', error);
+                    setFormMessage('edit-cotizacion-form-message', 'Error de conexión.', 'error');
+                }
+            });
+        }
     }
 
     function closeDrawer() {
@@ -599,6 +1033,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function bindActionMenuEvents() {
         if (!elements.clientesTableBody) return;
 
+        // Event listeners para clientes
         elements.clientesTableBody.addEventListener('click', event => {
             const trigger = event.target.closest('.action-menu-trigger');
             if (trigger) {
@@ -621,6 +1056,110 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
         });
+
+        // Event listeners para equipos
+        if (elements.equiposTableBody) {
+            elements.equiposTableBody.addEventListener('click', event => {
+                const trigger = event.target.closest('.action-menu-trigger');
+                if (trigger) {
+                    event.stopPropagation();
+                    toggleActionMenu(trigger);
+                    return;
+                }
+
+                const editButton = event.target.closest('.action-menu-edit');
+                if (editButton) {
+                    handleEditEquipo({ target: editButton });
+                    closeActionMenus();
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.action-menu-delete');
+                if (deleteButton) {
+                    handleDeleteEquipo({ target: deleteButton });
+                    closeActionMenus();
+                    return;
+                }
+            });
+        }
+
+        // Event listeners para técnicos
+        if (elements.tecnicosTableBody) {
+            elements.tecnicosTableBody.addEventListener('click', event => {
+                const trigger = event.target.closest('.action-menu-trigger');
+                if (trigger) {
+                    event.stopPropagation();
+                    toggleActionMenu(trigger);
+                    return;
+                }
+
+                const editButton = event.target.closest('.action-menu-edit');
+                if (editButton) {
+                    handleEditTecnico({ target: editButton });
+                    closeActionMenus();
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.action-menu-delete');
+                if (deleteButton) {
+                    handleDeleteTecnico({ target: deleteButton });
+                    closeActionMenus();
+                    return;
+                }
+            });
+        }
+
+        // Event listeners para órdenes
+        if (elements.ordenesTableBody) {
+            elements.ordenesTableBody.addEventListener('click', event => {
+                const trigger = event.target.closest('.action-menu-trigger');
+                if (trigger) {
+                    event.stopPropagation();
+                    toggleActionMenu(trigger);
+                    return;
+                }
+
+                const editButton = event.target.closest('.action-menu-edit');
+                if (editButton) {
+                    handleEditOrden({ target: editButton });
+                    closeActionMenus();
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.action-menu-delete');
+                if (deleteButton) {
+                    handleDeleteOrden({ target: deleteButton });
+                    closeActionMenus();
+                    return;
+                }
+            });
+        }
+
+        // Event listeners para cotizaciones
+        if (elements.cotizacionesTableBody) {
+            elements.cotizacionesTableBody.addEventListener('click', event => {
+                const trigger = event.target.closest('.action-menu-trigger');
+                if (trigger) {
+                    event.stopPropagation();
+                    toggleActionMenu(trigger);
+                    return;
+                }
+
+                const editButton = event.target.closest('.action-menu-edit');
+                if (editButton) {
+                    handleEditCotizacion({ target: editButton });
+                    closeActionMenus();
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.action-menu-delete');
+                if (deleteButton) {
+                    handleDeleteCotizacion({ target: deleteButton });
+                    closeActionMenus();
+                    return;
+                }
+            });
+        }
 
         document.addEventListener('click', event => {
             if (!event.target.closest('.action-menu')) {

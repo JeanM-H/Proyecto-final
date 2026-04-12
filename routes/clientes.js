@@ -182,4 +182,194 @@ router.delete('/', verifyToken, async (req, res) => {
   }
 });
 
+// GET /api/clientes/me - Obtener información del cliente actual
+router.get('/me', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
+      .eq('usuario_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error obteniendo cliente actual:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener información del cliente' });
+    }
+
+    if (!data) {
+      return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+    }
+
+    return res.status(200).json({ success: true, cliente: data });
+  } catch (error) {
+    console.error('Error clientes /me:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener información del cliente' });
+  }
+});
+
+// GET /api/clientes/me/ordenes - Obtener órdenes del cliente actual
+router.get('/me/ordenes', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Primero obtener el cliente_id del usuario actual
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .select('id')
+      .eq('usuario_id', userId)
+      .maybeSingle();
+
+    if (clienteError || !cliente) {
+      return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+    }
+
+    const { data, error } = await supabase
+      .from('ordenes_mantenimiento')
+      .select('id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, updated_at, equipo:equipos_climatizacion(modelo,marca,serial,tipo), tecnico:tecnicos(especialidad)')
+      .eq('cliente_id', cliente.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error obteniendo órdenes del cliente:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
+    }
+
+    return res.status(200).json({ success: true, ordenes: data || [] });
+  } catch (error) {
+    console.error('Error clientes /me/ordenes:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
+  }
+});
+
+// GET /api/clientes/me/cotizaciones - Obtener cotizaciones del cliente actual
+router.get('/me/cotizaciones', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Primero obtener el cliente_id del usuario actual
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .select('id')
+      .eq('usuario_id', userId)
+      .maybeSingle();
+
+    if (clienteError || !cliente) {
+      return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+    }
+
+    const { data, error } = await supabase
+      .from('cotizaciones')
+      .select('id, descripcion, monto_estimado, estado, fecha_solicitud, fecha_respuesta, created_at')
+      .eq('cliente_id', cliente.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error obteniendo cotizaciones del cliente:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener cotizaciones' });
+    }
+
+    return res.status(200).json({ success: true, cotizaciones: data || [] });
+  } catch (error) {
+    console.error('Error clientes /me/cotizaciones:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener cotizaciones' });
+  }
+});
+
+// GET /api/clientes/me/equipos - Obtener equipos del cliente actual
+router.get('/me/equipos', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Primero obtener el cliente_id del usuario actual
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .select('id')
+      .eq('usuario_id', userId)
+      .maybeSingle();
+
+    if (clienteError || !cliente) {
+      return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+    }
+
+    const { data, error } = await supabase
+      .from('equipos_climatizacion')
+      .select('id, marca, modelo, serial, tipo, estado, fecha_instalacion, ubicacion, created_at')
+      .eq('cliente_id', cliente.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error obteniendo equipos del cliente:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener equipos' });
+    }
+
+    return res.status(200).json({ success: true, equipos: data || [] });
+  } catch (error) {
+    console.error('Error clientes /me/equipos:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener equipos' });
+  }
+});
+
+// POST /api/clientes/me/solicitudes - Crear nueva solicitud de servicio
+router.post('/me/solicitudes', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { equipo_id, tipo, descripcion, fecha_deseada } = req.body;
+
+    if (!equipo_id || !tipo || !descripcion) {
+      return res.status(400).json({ success: false, message: 'Equipo, tipo y descripción son requeridos' });
+    }
+
+    // Verificar que el equipo pertenece al cliente
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .select('id')
+      .eq('usuario_id', userId)
+      .maybeSingle();
+
+    if (clienteError || !cliente) {
+      return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+    }
+
+    const { data: equipo, error: equipoError } = await supabase
+      .from('equipos_climatizacion')
+      .select('id')
+      .eq('id', equipo_id)
+      .eq('cliente_id', cliente.id)
+      .maybeSingle();
+
+    if (equipoError || !equipo) {
+      return res.status(404).json({ success: false, message: 'Equipo no encontrado o no pertenece al cliente' });
+    }
+
+    const { data, error } = await supabase
+      .from('ordenes_mantenimiento')
+      .insert({
+        cliente_id: cliente.id,
+        equipo_id: equipo_id,
+        tipo: tipo,
+        descripcion: descripcion,
+        estado: 'Pendiente',
+        fecha_programada: fecha_deseada || null
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creando solicitud:', error);
+      return res.status(500).json({ success: false, message: 'Error al crear la solicitud' });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Solicitud de servicio creada correctamente',
+      orden: data
+    });
+  } catch (error) {
+    console.error('Error clientes /me/solicitudes:', error);
+    return res.status(500).json({ success: false, message: 'Error al crear la solicitud' });
+  }
+});
+
 module.exports = router;

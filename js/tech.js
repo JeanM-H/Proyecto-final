@@ -1,0 +1,266 @@
+document.addEventListener('DOMContentLoaded', async function () {
+    const apiBase = window.location.origin;
+    const token = localStorage.getItem('coolcare_token');
+    const role = localStorage.getItem('coolcare_role');
+
+    if (!token || role !== 'Técnico') {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const authHeaders = () => ({
+        Authorization: `Bearer ${token}`
+    });
+
+    const messageBox = document.getElementById('tech-message');
+    const ordersTableBody = document.getElementById('orders-table-body');
+    const orderSelect = document.getElementById('tech-order-select');
+    const orderSummary = document.getElementById('order-summary');
+    const maintenanceForm = document.getElementById('maintenance-form');
+    const maintenanceHistoryBody = document.getElementById('maintenance-history-body');
+
+    let assignedOrders = [];
+    let selectedOrder = null;
+    let tecnicoId = null;
+
+    const setMessage = (message, type = 'info') => {
+        if (!messageBox) return;
+        messageBox.textContent = message;
+        messageBox.className = `form-message ${type}`;
+    };
+
+    const handleUnauthorized = () => {
+        localStorage.removeItem('coolcare_token');
+        localStorage.removeItem('coolcare_role');
+        window.location.href = 'login.html';
+    };
+
+    const fetchTechnician = async () => {
+        try {
+            const response = await fetch(`${apiBase}/api/tecnicos/me`, {
+                headers: authHeaders()
+            });
+
+            if (response.status === 401) {
+                handleUnauthorized();
+                return;
+            }
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                setMessage('No se pudo cargar los datos del técnico.', 'error');
+                return;
+            }
+
+            tecnicoId = data.tecnico.id;
+            return tecnicoId;
+        } catch (error) {
+            console.error('Error cargando técnico:', error);
+            setMessage('Error de conexión al cargar técnico.', 'error');
+        }
+    };
+
+    const fetchAssignedOrders = async () => {
+        if (!ordersTableBody || !orderSelect) return;
+
+        try {
+            const response = await fetch(`${apiBase}/api/ordenes/assigned`, {
+                headers: authHeaders()
+            });
+
+            if (response.status === 401) {
+                handleUnauthorized();
+                return;
+            }
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                ordersTableBody.innerHTML = '<tr><td colspan="7">No fue posible cargar las órdenes.</td></tr>';
+                return;
+            }
+
+            assignedOrders = data.ordenes || [];
+            tecnicoId = data.tecnico_id || tecnicoId;
+            renderAssignedOrders();
+            renderOrderSelect();
+            if (assignedOrders.length > 0) {
+                selectOrder(assignedOrders[0].id);
+            } else {
+                selectOrder(null);
+                ordersTableBody.innerHTML = '<tr><td colspan="7">No tienes órdenes asignadas.</td></tr>';
+            }
+        } catch (error) {
+            console.error('Error cargando órdenes asignadas:', error);
+            ordersTableBody.innerHTML = '<tr><td colspan="7">Error de conexión.</td></tr>';
+        }
+    };
+
+    const renderAssignedOrders = () => {
+        if (!ordersTableBody) return;
+
+        if (assignedOrders.length === 0) {
+            ordersTableBody.innerHTML = '<tr><td colspan="7">No tienes órdenes asignadas.</td></tr>';
+            return;
+        }
+
+        ordersTableBody.innerHTML = '';
+        assignedOrders.forEach(order => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${order.id}</td>
+                <td>${order.cliente?.empresa || 'N/A'}</td>
+                <td>${order.equipo?.marca || 'N/A'}</td>
+                <td>${order.equipo?.modelo || 'N/A'}</td>
+                <td>${order.tipo}</td>
+                <td>${order.estado}</td>
+                <td>${order.fecha_programada ? new Date(order.fecha_programada).toLocaleString('es-CO') : 'No definida'}</td>
+            `;
+            row.addEventListener('click', () => selectOrder(order.id));
+            ordersTableBody.appendChild(row);
+        });
+    };
+
+    const renderOrderSelect = () => {
+        if (!orderSelect) return;
+
+        const options = assignedOrders.map(order => `
+            <option value="${order.id}">Orden #${order.id} - ${order.equipo?.marca || 'Equipo'} ${order.equipo?.modelo || ''}</option>
+        `).join('');
+
+        orderSelect.innerHTML = '<option value="">Selecciona una orden</option>' + options;
+    };
+
+    const selectOrder = orderId => {
+        selectedOrder = assignedOrders.find(order => order.id === Number(orderId)) || null;
+        if (orderSelect) {
+            orderSelect.value = orderId || '';
+        }
+
+        if (!selectedOrder) {
+            orderSummary.innerHTML = '<p>No hay orden seleccionada.</p>';
+            return;
+        }
+
+        orderSummary.innerHTML = `
+            <p><strong>Orden:</strong> ${selectedOrder.id}</p>
+            <p><strong>Cliente:</strong> ${selectedOrder.cliente?.empresa || 'N/A'}</p>
+            <p><strong>Equipo:</strong> ${selectedOrder.equipo?.marca || 'N/A'} ${selectedOrder.equipo?.modelo || 'N/A'}</p>
+            <p><strong>Tipo de servicio:</strong> ${selectedOrder.tipo}</p>
+            <p><strong>Descripción:</strong> ${selectedOrder.descripcion || 'N/A'}</p>
+            <p><strong>Estado actual:</strong> ${selectedOrder.estado}</p>
+            <p><strong>Fecha programada:</strong> ${selectedOrder.fecha_programada ? new Date(selectedOrder.fecha_programada).toLocaleString('es-CO') : 'No definida'}</p>
+        `;
+    };
+
+    const fetchMaintenanceHistory = async () => {
+        if (!maintenanceHistoryBody || !tecnicoId) return;
+
+        try {
+            const response = await fetch(`${apiBase}/api/mantenimientos/tecnico/${tecnicoId}`, {
+                headers: authHeaders()
+            });
+
+            if (response.status === 401) {
+                handleUnauthorized();
+                return;
+            }
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                maintenanceHistoryBody.innerHTML = '<tr><td colspan="6">No fue posible cargar el historial.</td></tr>';
+                return;
+            }
+
+            const history = data.mantenimientos || [];
+            if (history.length === 0) {
+                maintenanceHistoryBody.innerHTML = '<tr><td colspan="6">No hay mantenimientos registrados.</td></tr>';
+                return;
+            }
+
+            maintenanceHistoryBody.innerHTML = history.map(item => `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${item.orden_id}</td>
+                    <td>${item.notas}</td>
+                    <td>${item.tiempo_dedicado || 'N/A'}</td>
+                    <td>${item.repuestos_utilizados || 'N/A'}</td>
+                    <td>${item.fecha_fin ? new Date(item.fecha_fin).toLocaleString('es-CO') : 'No finalizado'}</td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error('Error cargando historial de mantenimientos:', error);
+            maintenanceHistoryBody.innerHTML = '<tr><td colspan="6">Error de conexión.</td></tr>';
+        }
+    };
+
+    if (orderSelect) {
+        orderSelect.addEventListener('change', event => {
+            selectOrder(event.target.value);
+        });
+    }
+
+    if (maintenanceForm) {
+        maintenanceForm.addEventListener('submit', async event => {
+            event.preventDefault();
+
+            if (!selectedOrder) {
+                setMessage('Selecciona una orden antes de registrar el mantenimiento.', 'error');
+                return;
+            }
+
+            const notas = document.getElementById('maintenance-notes').value.trim();
+            const tiempo = Number(document.getElementById('maintenance-time').value);
+            const repuestos = document.getElementById('maintenance-parts').value.trim();
+            const fechaInicio = document.getElementById('maintenance-start').value;
+            const fechaFin = document.getElementById('maintenance-end').value;
+            const observaciones = document.getElementById('maintenance-observations').value.trim();
+
+            if (!notas || !tiempo) {
+                setMessage('Ingresa notas y tiempo dedicado.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiBase}/api/mantenimientos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...authHeaders()
+                    },
+                    body: JSON.stringify({
+                        orden_id: selectedOrder.id,
+                        notas,
+                        tiempo_dedicado: tiempo,
+                        repuestos_utilizados: repuestos,
+                        fecha_inicio: fechaInicio || new Date().toISOString(),
+                        fecha_fin: fechaFin || null,
+                        observaciones
+                    })
+                });
+
+                if (response.status === 401) {
+                    handleUnauthorized();
+                    return;
+                }
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    setMessage(data.message || 'Error registrando mantenimiento.', 'error');
+                    return;
+                }
+
+                setMessage('Mantenimiento registrado correctamente.', 'success');
+                maintenanceForm.reset();
+                await fetchAssignedOrders();
+                await fetchMaintenanceHistory();
+            } catch (error) {
+                console.error('Error guardando mantenimiento:', error);
+                setMessage('Error de conexión al registrar mantenimiento.', 'error');
+            }
+        });
+    }
+
+    await fetchTechnician();
+    await fetchAssignedOrders();
+    await fetchMaintenanceHistory();
+});

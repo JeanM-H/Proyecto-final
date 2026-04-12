@@ -57,4 +57,52 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    const equipoId = Number(req.params.id);
+    const { cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado } = req.body;
+
+    if (!cliente_id || !marca || !modelo || !serial || !tipo) {
+      return res.status(400).json({ success: false, message: 'Datos incompletos para actualizar el equipo' });
+    }
+
+    const { data, error } = await supabase
+      .from('equipos_climatizacion')
+      .update({ cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado })
+      .eq('id', equipoId)
+      .single();
+
+    if (error) {
+      console.error('Error actualizando equipo:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar el equipo' });
+    }
+
+    return res.status(200).json({ success: true, equipo: data });
+  } catch (error) {
+    console.error('Error equipos PUT:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar el equipo' });
+  }
+});
+
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const equipoId = Number(req.params.id);
+
+    const { error } = await supabase
+      .from('equipos_climatizacion')
+      .delete()
+      .eq('id', equipoId);
+
+    if (error) {
+      console.error('Error eliminando equipo:', error);
+      return res.status(500).json({ success: false, message: 'Error al eliminar el equipo' });
+    }
+
+    return res.status(200).json({ success: true, message: 'Equipo eliminado correctamente' });
+  } catch (error) {
+    console.error('Error equipos DELETE:', error);
+    return res.status(500).json({ success: false, message: 'Error al eliminar el equipo' });
+  }
+});
+
 module.exports = router;

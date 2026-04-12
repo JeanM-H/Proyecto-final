@@ -14,23 +14,170 @@
                 <h1>CoolCare</h1>
             </div>
             <nav>
-                <a href="login.html">Cerrar sesión</a>
+                <a href="#" id="logout-link">Cerrar sesión</a>
             </nav>
         </header>
 
         <main id="content">
+            <!-- Dashboard del Cliente -->
             <section class="welcome-card">
-                <h2>Panel Cliente</h2>
-                <p>Desde aquí podrás ver tus solicitudes, cotizaciones y el estado de tus equipos.</p>
+                <h2>Panel de Cliente</h2>
+                <p id="cliente-info">Cargando información...</p>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Órdenes Activas</h3>
+                        <div class="metric-value" id="metric-ordenes-activas">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Cotizaciones Pendientes</h3>
+                        <div class="metric-value" id="metric-cotizaciones-pendientes">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Equipos Registrados</h3>
+                        <div class="metric-value" id="metric-equipos">0</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navegación por pestañas -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-section="ordenes">Mis Órdenes</button>
+                <button class="admin-tab" data-section="cotizaciones">Cotizaciones</button>
+                <button class="admin-tab" data-section="equipos">Mis Equipos</button>
+                <button class="admin-tab" data-section="solicitar">Solicitar Servicio</button>
+            </div>
+
+            <!-- Sección de Órdenes -->
+            <section id="admin-ordenes" class="admin-section">
+                <div class="section-header">
+                    <h3>Mis Órdenes de Mantenimiento</h3>
+                    <button class="btn-primary open-drawer-btn" data-form="solicitar-servicio">Nueva Solicitud</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Equipo</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Fecha Programada</th>
+                                <th>Técnico</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordenes-table-body">
+                            <tr><td colspan="6">Cargando órdenes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sección de Cotizaciones -->
+            <section id="admin-cotizaciones" class="admin-section hidden">
+                <div class="section-header">
+                    <h3>Mis Cotizaciones</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Descripción</th>
+                                <th>Monto Estimado</th>
+                                <th>Estado</th>
+                                <th>Fecha Solicitud</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cotizaciones-table-body">
+                            <tr><td colspan="5">Cargando cotizaciones...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sección de Equipos -->
+            <section id="admin-equipos" class="admin-section hidden">
+                <div class="section-header">
+                    <h3>Mis Equipos</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Marca</th>
+                                <th>Modelo</th>
+                                <th>Serial</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Ubicación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="equipos-table-body">
+                            <tr><td colspan="7">Cargando equipos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sección de Solicitar Servicio -->
+            <section id="admin-solicitar" class="admin-section hidden">
+                <div class="section-header">
+                    <h3>Solicitar Nuevo Servicio</h3>
+                </div>
                 <div class="card-panel">
-                    <p>Sección de cliente en construcción. Pronto mostraremos sus órdenes y cotizaciones.</p>
+                    <p>¿Necesitas mantenimiento para uno de tus equipos? Completa el formulario a continuación.</p>
+                    <button class="btn-primary open-drawer-btn" data-form="solicitar-servicio">Solicitar Servicio</button>
                 </div>
             </section>
         </main>
+
+        <!-- Drawer para formularios -->
+        <div id="form-drawer" class="drawer" aria-hidden="true">
+            <div class="drawer-backdrop" id="drawer-backdrop"></div>
+            <div class="drawer-content">
+                <div class="drawer-header">
+                    <h3 id="drawer-title">Formulario</h3>
+                    <button id="close-drawer" class="close-btn" aria-label="Cerrar">&times;</button>
+                </div>
+                <div class="drawer-body">
+                    <!-- Formulario de solicitud de servicio -->
+                    <div id="drawer-form-solicitar-servicio" class="drawer-form hidden" data-title="Solicitar Servicio de Mantenimiento">
+                        <form id="solicitar-servicio-form" class="admin-form">
+                            <div class="input-group">
+                                <label for="servicio-equipo">Equipo</label>
+                                <select id="servicio-equipo" name="equipo_id" required>
+                                    <option value="">Seleccione un equipo</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="servicio-tipo">Tipo de Servicio</label>
+                                <select id="servicio-tipo" name="tipo" required>
+                                    <option value="Preventivo">Preventivo</option>
+                                    <option value="Correctivo">Correctivo</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="servicio-descripcion">Descripción del Problema/Servicio</label>
+                                <textarea id="servicio-descripcion" name="descripcion" rows="4" placeholder="Describe el problema o el tipo de mantenimiento que necesitas..." required></textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="servicio-fecha">Fecha Deseada (opcional)</label>
+                                <input id="servicio-fecha" name="fecha_deseada" type="date">
+                            </div>
+                            <button type="submit" class="btn-primary">Enviar Solicitud</button>
+                            <p id="solicitar-servicio-form-message" class="form-message"></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <footer>
             <p>&copy; 2026 Proyecto Final ADSO</p>
         </footer>
     </div>
+
+    <script src="js/client.js"></script>
 </body>
 </html>

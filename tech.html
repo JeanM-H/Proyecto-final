@@ -19,11 +19,103 @@
         </header>
 
         <main id="content">
-            <section class="welcome-card">
-                <h2>Panel Técnico</h2>
-                <p>Aquí verás las órdenes asignadas, tus tareas y el estado de los equipos.</p>
-                <div class="card-panel">
-                    <p>Sección de técnico en construcción. Pronto mostraremos las órdenes y detalles de servicio.</p>
+            <section class="tech-shell">
+                <div class="page-header">
+                    <div>
+                        <h2>Panel Técnico</h2>
+                        <p>Gestiona tus órdenes asignadas, registra mantenimientos y captura evidencias simuladas.</p>
+                    </div>
+                </div>
+
+                <div class="tech-grid">
+                    <div class="card-panel">
+                        <h3>Órdenes asignadas</h3>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Cliente</th>
+                                        <th>Equipo</th>
+                                        <th>Tipo</th>
+                                        <th>Estado</th>
+                                        <th>Programada</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table-body">
+                                    <tr><td colspan="7">Cargando órdenes asignadas...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-panel">
+                        <h3>Registrar mantenimiento</h3>
+                        <form id="maintenance-form" class="admin-form">
+                            <div class="input-group">
+                                <label for="tech-order-select">Orden asignada</label>
+                                <select id="tech-order-select" required></select>
+                            </div>
+
+                            <div id="order-summary" class="order-summary">
+                                <p>Selecciona una orden para ver sus detalles.</p>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="maintenance-notes">Notas de trabajo</label>
+                                <textarea id="maintenance-notes" rows="4" required placeholder="Describe las tareas realizadas"></textarea>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="maintenance-time">Tiempo dedicado (minutos)</label>
+                                <input id="maintenance-time" type="number" min="10" placeholder="60" required>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="maintenance-parts">Repuestos utilizados</label>
+                                <input id="maintenance-parts" type="text" placeholder="Filtro aire, aceite, etc.">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="maintenance-start">Fecha / hora de inicio</label>
+                                <input id="maintenance-start" type="datetime-local">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="maintenance-end">Fecha / hora de finalización</label>
+                                <input id="maintenance-end" type="datetime-local">
+                            </div>
+
+                            <div class="input-group">
+                                <label for="maintenance-observations">Observaciones</label>
+                                <textarea id="maintenance-observations" rows="3" placeholder="Observaciones adicionales"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-primary">Registrar mantenimiento</button>
+                            <p id="tech-message" class="form-message"></p>
+                        </form>
+                    </div>
+
+                    <div class="card-panel full-width">
+                        <h3>Historial de mantenimientos</h3>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Orden</th>
+                                        <th>Notas</th>
+                                        <th>Tiempo (min)</th>
+                                        <th>Repuestos</th>
+                                        <th>Finalizado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="maintenance-history-body">
+                                    <tr><td colspan="6">Cargando historial...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -32,5 +124,7 @@
             <p>&copy; 2026 Proyecto Final ADSO</p>
         </footer>
     </div>
+
+    <script src="js/tech.js"></script>
 </body>
 </html>

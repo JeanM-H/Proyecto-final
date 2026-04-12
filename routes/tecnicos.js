@@ -43,6 +43,30 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/me', verifyToken, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('tecnicos')
+      .select('id, usuario_id, especialidad, disponible, telefono_contacto, usuario:usuarios(nombre, email)')
+      .eq('usuario_id', req.user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error técnico actual:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener datos del técnico' });
+    }
+
+    if (!data) {
+      return res.status(404).json({ success: false, message: 'Técnico no encontrado' });
+    }
+
+    return res.status(200).json({ success: true, tecnico: data });
+  } catch (error) {
+    console.error('Error técnico actual:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener datos del técnico' });
+  }
+});
+
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { nombre, apellido, email, especialidad, telefono_contacto } = req.body;
@@ -94,6 +118,68 @@ router.post('/', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error tecnicos POST:', error);
     return res.status(500).json({ success: false, message: 'Error al crear el técnico' });
+  }
+});
+
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    const tecnicoId = Number(req.params.id);
+    const { especialidad, disponible, telefono_contacto } = req.body;
+
+    if (!especialidad) {
+      return res.status(400).json({ success: false, message: 'Especialidad es requerida' });
+    }
+
+    const { data, error } = await supabase
+      .from('tecnicos')
+      .update({ especialidad, disponible: disponible !== undefined ? disponible : true, telefono_contacto })
+      .eq('id', tecnicoId)
+      .single();
+
+    if (error) {
+      console.error('Error actualizando técnico:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar el técnico' });
+    }
+
+    return res.status(200).json({ success: true, tecnico: data });
+  } catch (error) {
+    console.error('Error tecnicos PUT:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar el técnico' });
+  }
+});
+
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const tecnicoId = Number(req.params.id);
+
+    const { data: tecnico, error: selectError } = await supabase
+      .from('tecnicos')
+      .select('usuario_id')
+      .eq('id', tecnicoId)
+      .single();
+
+    if (selectError) {
+      return res.status(404).json({ success: false, message: 'Técnico no encontrado' });
+    }
+
+    const { error: deleteTecnicoError } = await supabase
+      .from('tecnicos')
+      .delete()
+      .eq('id', tecnicoId);
+
+    if (deleteTecnicoError) {
+      console.error('Error eliminando técnico:', deleteTecnicoError);
+      return res.status(500).json({ success: false, message: 'Error al eliminar técnico' });
+    }
+
+    if (tecnico.usuario_id) {
+      await supabase.from('usuarios').delete().eq('id', tecnico.usuario_id);
+    }
+
+    return res.status(200).json({ success: true, message: 'Técnico eliminado correctamente' });
+  } catch (error) {
+    console.error('Error tecnicos DELETE:', error);
+    return res.status(500).json({ success: false, message: 'Error al eliminar técnico' });
   }
 });
 
