@@ -112,7 +112,10 @@ router.put('/', verifyToken, async (req, res) => {
   try {
     const { id, nombre, apellido, email, empresa, telefono, direccion, ciudad, pais } = req.body;
 
+    console.log('[PUT /api/clientes] Datos recibidos:', { id, nombre, apellido, email, empresa, telefono, direccion, ciudad, pais });
+
     if (!id || !empresa) {
+      console.log('[PUT /api/clientes] Validación fallida - ID o empresa vacíos');
       return res.status(400).json({ success: false, message: 'ID y empresa son requeridos' });
     }
 
@@ -122,12 +125,15 @@ router.put('/', verifyToken, async (req, res) => {
       .eq('id', id)
       .single();
 
+    console.log('[PUT /api/clientes] Cliente encontrado:', cliente, 'Error:', clienteError);
+
     if (clienteError || !cliente) {
       console.error('Error obteniendo cliente para actualizar:', clienteError);
       return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
     }
 
     if (!cliente.usuario_id) {
+      console.log('[PUT /api/clientes] Cliente sin usuario_id');
       return res.status(400).json({ success: false, message: 'Cliente sin usuario asociado' });
     }
 
@@ -143,11 +149,15 @@ router.put('/', verifyToken, async (req, res) => {
     if (apellido) usuarioUpdate.apellido = apellido;
     if (email) usuarioUpdate.email = email;
 
+    console.log('[PUT /api/clientes] clienteUpdate:', clienteUpdate, 'usuarioUpdate:', usuarioUpdate);
+
     if (Object.keys(clienteUpdate).length === 0 && Object.keys(usuarioUpdate).length === 0) {
+      console.log('[PUT /api/clientes] Sin cambios para actualizar');
       return res.status(400).json({ success: false, message: 'Debe proporcionar al menos un dato para actualizar' });
     }
 
     if (Object.keys(usuarioUpdate).length > 0) {
+      console.log('[PUT /api/clientes] Actualizando usuario:', cliente.usuario_id, 'con datos:', usuarioUpdate);
       const { error: userUpdateError } = await supabase
         .from('usuarios')
         .update(usuarioUpdate)
@@ -157,12 +167,14 @@ router.put('/', verifyToken, async (req, res) => {
         console.error('Error actualizando usuario del cliente:', userUpdateError);
         return res.status(500).json({ success: false, message: 'Error al actualizar los datos del usuario' });
       }
+      console.log('[PUT /api/clientes] Usuario actualizado exitosamente');
     }
 
     let updatedCliente = null;
     let updateError = null;
 
     if (Object.keys(clienteUpdate).length > 0) {
+      console.log('[PUT /api/clientes] Actualizando cliente:', id, 'con datos:', clienteUpdate);
       const result = await supabase
         .from('clientes')
         .update(clienteUpdate)
@@ -171,6 +183,7 @@ router.put('/', verifyToken, async (req, res) => {
         .single();
       updatedCliente = result.data;
       updateError = result.error;
+      console.log('[PUT /api/clientes] Cliente actualizado:', updatedCliente, 'Error:', updateError);
     }
 
     if (updateError) {
@@ -183,6 +196,8 @@ router.put('/', verifyToken, async (req, res) => {
       .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, apellido, email)')
       .eq('id', id)
       .single();
+
+    console.log('[PUT /api/clientes] Cliente final retornado:', clienteFinal);
 
     return res.status(200).json({
       success: true,
