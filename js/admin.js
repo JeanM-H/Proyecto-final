@@ -1004,18 +1004,16 @@ document.addEventListener('DOMContentLoaded', function () {
         // Resetear formulario de cliente si está en modo crear
         if (formType === 'cliente') {
             const clienteForm = document.getElementById('cliente-form');
-            const mode = clienteForm.dataset.mode || 'create';
-            
-            if (mode === 'create') {
-                drawerTitle.textContent = 'Crear Cliente';
-                clienteForm.reset();
-                const messageEl = document.getElementById('cliente-form-message');
-                if (messageEl) messageEl.textContent = '';
-                // Limpiar los campos que no se resetean con reset()
-                document.getElementById('cliente-nombre').value = '';
-                document.getElementById('cliente-apellido').value = '';
-                document.getElementById('cliente-email').value = '';
-            }
+            drawerTitle.textContent = 'Crear Cliente';
+            clienteForm.dataset.mode = 'create';
+            delete clienteForm.dataset.clienteId;
+            clienteForm.reset();
+            const messageEl = document.getElementById('cliente-form-message');
+            if (messageEl) messageEl.textContent = '';
+            // Limpiar los campos que no se resetean con reset()
+            document.getElementById('cliente-nombre').value = '';
+            document.getElementById('cliente-apellido').value = '';
+            document.getElementById('cliente-email').value = '';
         } else {
             drawerTitle.textContent = activeForm.dataset.title || 'Formulario';
         }

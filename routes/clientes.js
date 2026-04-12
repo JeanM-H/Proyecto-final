@@ -67,15 +67,17 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`;
+    const usuarioPayload = {
+      nombre: nombreCompleto,
+      email,
+      password: hashedPassword,
+      rol: 'Cliente',
+      estado: true
+    };
+    console.log('[POST /api/clientes] Crear usuario payload:', usuarioPayload);
     const { data: usuario, error: insertUserError } = await supabase
       .from('usuarios')
-      .insert({
-        nombre: nombreCompleto,
-        email,
-        password: hashedPassword,
-        rol: 'Cliente',
-        estado: true
-      })
+      .insert(usuarioPayload)
       .select('id')
       .single();
 
@@ -84,9 +86,11 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error al crear el cliente' });
     }
 
+    const clientePayload = { usuario_id: usuario.id, empresa, telefono, direccion, ciudad, pais };
+    console.log('[POST /api/clientes] Crear cliente payload:', clientePayload);
     const { data: cliente, error: insertClienteError } = await supabase
       .from('clientes')
-      .insert({ usuario_id: usuario.id, empresa, telefono, direccion, ciudad, pais })
+      .insert(clientePayload)
       .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at')
       .single();
 
