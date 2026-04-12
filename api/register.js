@@ -1,14 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { createClient } = require('@supabase/supabase-js');
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Faltan las variables SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY/SUPABASE_ANON_KEY');
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = require('./supabaseClient');
 
 function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
@@ -38,6 +29,11 @@ module.exports = async (req, res) => {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Método no permitido' });
+  }
+
+  if (!supabase) {
+    console.error('Supabase client not initialized in register handler.');
+    return res.status(500).json({ success: false, error: 'Configuración de Supabase incompleta en el servidor' });
   }
 
   try {
