@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const drawerTitle = document.getElementById('drawer-title');
         const clienteForm = document.getElementById('cliente-form');
         
+        console.log('[CLIENTE EDIT] abrir editar cliente', clienteId, cliente);
         drawerTitle.textContent = `Editar Cliente - ID: ${clienteId}`;
         clienteForm.dataset.mode = 'edit';
         clienteForm.dataset.clienteId = clienteId;
@@ -708,6 +709,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     payload.nombre = document.getElementById('cliente-nombre').value.trim();
                     payload.apellido = document.getElementById('cliente-apellido').value.trim();
                     payload.email = document.getElementById('cliente-email').value.trim();
+                    console.log('[CLIENTE SUBMIT] modo:', mode, 'payload:', payload);
                     try {
                         const response = await fetch(`${apiBase}/api/clientes`, {
                             method: 'PUT',
@@ -715,6 +717,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             body: JSON.stringify(payload)
                         });
                         const data = await response.json();
+                        console.log('[CLIENTE SUBMIT] response:', data);
                         if (response.ok && data.success) {
                             setFormMessage('cliente-form-message', 'Cliente actualizado correctamente.', 'success');
                             clienteForm.dataset.mode = 'create';
@@ -1005,6 +1008,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const clienteForm = document.getElementById('cliente-form');
             const mode = options.mode || clienteForm.dataset.mode || 'create';
             clienteForm.dataset.mode = mode;
+            console.log('[CLIENTE OPEN] modo:', mode, 'dataset:', { mode: clienteForm.dataset.mode, id: clienteForm.dataset.clienteId });
 
             if (mode === 'create') {
                 drawerTitle.textContent = 'Crear Cliente';
