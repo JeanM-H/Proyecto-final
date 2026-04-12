@@ -59,9 +59,9 @@ module.exports = async (req, res) => {
   if (req.method === 'POST') {
     try {
       const payload = await parseJsonBody(req);
-      const { nombre, apellido, email, password, especialidad, telefono_contacto } = payload;
+      const { nombre, apellido, email, especialidad, telefono_contacto } = payload;
 
-      if (!nombre || !apellido || !email || !password || !especialidad) {
+      if (!nombre || !apellido || !email || !especialidad) {
         return res.status(400).json({ success: false, message: 'Datos incompletos para crear el técnico' });
       }
 
@@ -74,6 +74,7 @@ module.exports = async (req, res) => {
         return res.status(409).json({ success: false, message: 'El email ya está registrado' });
       }
 
+      const password = generateTemporaryPassword(nombre, apellido);
       const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`;
       const { data: usuario, error: insertUserError } = await supabase
         .from('usuarios')
