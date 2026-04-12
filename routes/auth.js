@@ -25,12 +25,12 @@ router.post('/login', async (req, res) => {
 
     let userResult = await supabase
       .from('usuarios')
-      .select('id, nombre, email, rol, password, estado, needs_password_change')
+      .select('id, nombre, email, rol, password, estado')
       .eq('email', email)
       .eq('rol', role)
       .maybeSingle();
 
-    if (userResult.error && userResult.error.message && userResult.error.message.includes('needs_password_change')) {
+    if (userResult.error && userResult.error.message && userResult.error.message.includes('unique')) {
       userResult = await supabase
         .from('usuarios')
         .select('id, nombre, email, rol, password, estado')
@@ -60,7 +60,7 @@ router.post('/login', async (req, res) => {
       success: true,
       message: 'Login exitoso',
       token,
-      needsPasswordChange: Boolean(user.needs_password_change),
+      needsPasswordChange: false,
       user: {
         id: user.id,
         nombre: user.nombre,

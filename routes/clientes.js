@@ -24,7 +24,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('clientes')
-      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, apellido, email)')
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
       .order('id', { ascending: true });
 
     if (error) {
@@ -74,8 +74,7 @@ router.post('/', verifyToken, async (req, res) => {
         email,
         password: hashedPassword,
         rol: 'Cliente',
-        estado: true,
-        needs_password_change: true
+        estado: true
       })
       .select('id')
       .single();
@@ -193,7 +192,7 @@ router.put('/', verifyToken, async (req, res) => {
 
     const { data: clienteFinal } = await supabase
       .from('clientes')
-      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, apellido, email)')
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
       .eq('id', id)
       .single();
 
