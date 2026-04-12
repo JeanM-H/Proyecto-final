@@ -1,36 +1,19 @@
 const fs = require('fs');
 const path = require('path');
 
-function parseJsonBody(req) {
-  return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
-    req.on('end', () => {
-      try {
-        resolve(JSON.parse(body || '{}'));
-      } catch (error) {
-        reject(error);
-      }
-    });
-    req.on('error', reject);
-  });
-}
-
 const routeHandlers = {
-  '/api/login': './login.js',
-  '/api/register': './register.js',
-  '/api/clientes': './clientes.js',
-  '/api/tecnicos': './tecnicos.js',
-  '/api/change-password': './change-password.js',
-  '/api/dashboard-metrics': './dashboard-metrics.js',
-  '/api/equipos': './equipos.js',
-  '/api/ordenes': './ordenes.js',
-  '/api/cotizaciones': './cotizaciones.js',
-  '/api/auth/login': './login.js',
-  '/api/auth/register': './register.js',
-  '/api/auth/change-password': './change-password.js'
+  '/api/login': require('./login.js'),
+  '/api/register': require('./register.js'),
+  '/api/clientes': require('./clientes.js'),
+  '/api/tecnicos': require('./tecnicos.js'),
+  '/api/change-password': require('./change-password.js'),
+  '/api/dashboard-metrics': require('./dashboard-metrics.js'),
+  '/api/equipos': require('./equipos.js'),
+  '/api/ordenes': require('./ordenes.js'),
+  '/api/cotizaciones': require('./cotizaciones.js'),
+  '/api/auth/login': require('./login.js'),
+  '/api/auth/register': require('./register.js'),
+  '/api/auth/change-password': require('./change-password.js')
 };
 
 module.exports = async (req, res) => {
@@ -58,11 +41,12 @@ module.exports = async (req, res) => {
     });
   }
 
-  const normalizedPath = routeHandlers[pathname] ? pathname : pathname.split('/').slice(0, 3).join('/');
-  const handlerPath = routeHandlers[normalizedPath];
-  if (handlerPath) {
+  const normalizedPath = routeHandlers[pathname]
+    ? pathname
+    : '/' + pathname.split('/').filter(Boolean).slice(0, 2).join('/');
+  const handler = routeHandlers[normalizedPath];
+  if (handler) {
     try {
-      const handler = require(path.join(__dirname, handlerPath));
       await handler(req, res);
       return;
     } catch (error) {
