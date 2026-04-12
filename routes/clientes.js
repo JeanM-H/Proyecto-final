@@ -301,23 +301,19 @@ router.put('/', verifyToken, async (req, res) => {
 
     const finalCliente = clienteFinal || updatedCliente;
 
-    if (finalCliente && !finalCliente.usuario && finalCliente.usuario_id) {
-      const { data: usuarioFallback, error: usuarioFallbackError } = await supabase
+    if (finalCliente?.usuario_id) {
+      const { data: usuarioData, error: usuarioDataError } = await supabase
         .from('usuarios')
         .select('nombre, email')
         .eq('id', finalCliente.usuario_id)
         .single();
 
-      if (!usuarioFallbackError && usuarioFallback) {
-        finalCliente.usuario = usuarioFallback;
+      if (!usuarioDataError && usuarioData) {
+        finalCliente.usuario = {
+          ...usuarioData,
+          ...splitUsuarioFullName(usuarioData.nombre)
+        };
       }
-    }
-
-    if (finalCliente?.usuario?.nombre) {
-      finalCliente.usuario = {
-        ...finalCliente.usuario,
-        ...splitUsuarioFullName(finalCliente.usuario.nombre)
-      };
     }
 
     console.log('[PUT /api/clientes] Cliente final retornado:', finalCliente);
