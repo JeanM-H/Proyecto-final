@@ -144,8 +144,10 @@ router.put('/', verifyToken, async (req, res) => {
     if (pais) clienteUpdate.pais = pais;
 
     const usuarioUpdate = {};
-    if (nombre) usuarioUpdate.nombre = nombre;
-    if (apellido) usuarioUpdate.apellido = apellido;
+    if (nombre || apellido) {
+      const fullName = [nombre, apellido].filter(Boolean).join(' ').trim();
+      if (fullName) usuarioUpdate.nombre = fullName;
+    }
     if (email) usuarioUpdate.email = email;
 
     console.log('[PUT /api/clientes] clienteUpdate:', clienteUpdate, 'usuarioUpdate:', usuarioUpdate);
