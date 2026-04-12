@@ -27,7 +27,10 @@ const routeHandlers = {
   '/api/dashboard-metrics': './dashboard-metrics.js',
   '/api/equipos': './equipos.js',
   '/api/ordenes': './ordenes.js',
-  '/api/cotizaciones': './cotizaciones.js'
+  '/api/cotizaciones': './cotizaciones.js',
+  '/api/auth/login': './login.js',
+  '/api/auth/register': './register.js',
+  '/api/auth/change-password': './change-password.js'
 };
 
 module.exports = async (req, res) => {
