@@ -153,8 +153,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!cliente) return;
 
-        document.getElementById('cliente-nombre').value = cliente.usuario?.nombre || '';
-        document.getElementById('cliente-apellido').value = cliente.usuario?.apellido || '';
+        let clienteNombre = cliente.usuario?.nombre || '';
+        let clienteApellido = cliente.usuario?.apellido || '';
+
+        if (!clienteApellido && clienteNombre.includes(' ')) {
+            const nombreParts = clienteNombre.trim().split(' ');
+            clienteApellido = nombreParts.pop();
+            clienteNombre = nombreParts.join(' ');
+        }
+
+        document.getElementById('cliente-nombre').value = clienteNombre;
+        document.getElementById('cliente-apellido').value = clienteApellido;
         document.getElementById('cliente-email').value = cliente.usuario?.email || '';
         document.getElementById('cliente-empresa').value = cliente.empresa || '';
         document.getElementById('cliente-telefono').value = cliente.telefono || '';
