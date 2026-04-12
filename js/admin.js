@@ -117,10 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             elements.clientesTableBody.innerHTML = '';
             options.clientes.forEach(cliente => {
+                const fullName = cliente.usuario?.nombre ? cliente.usuario.nombre.trim() : '';
+                const displayName = fullName || 'N/A';
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${cliente.id}</td>
-                    <td>${[cliente.usuario?.nombre, cliente.usuario?.apellido].filter(Boolean).join(' ') || 'N/A'}</td>
+                    <td>${displayName}</td>
                     <td>${cliente.empresa || 'N/A'}</td>
                     <td>${cliente.usuario?.email || 'N/A'}</td>
                     <td>${cliente.telefono || 'N/A'}</td>

@@ -123,15 +123,44 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 // PUT /api/clientes
+function buildFullName(nombre, apellido, existingFullName = '') {
+  const rawName = (nombre || '').trim();
+  const rawApellido = (apellido || '').trim();
+  const existingParts = (existingFullName || '').trim().split(/\s+/).filter(Boolean);
+
+  if (rawName && rawApellido) {
+    return `${rawName} ${rawApellido}`.trim();
+  }
+
+  if (rawName) {
+    if (existingParts.length > 1) {
+      return `${rawName} ${existingParts.slice(1).join(' ')}`.trim();
+    }
+    return rawName;
+  }
+
+  if (rawApellido) {
+    if (existingParts.length > 1) {
+      return `${existingParts.slice(0, -1).join(' ')} ${rawApellido}`.trim();
+    }
+    if (existingParts.length === 1) {
+      return `${existingParts[0]} ${rawApellido}`.trim();
+    }
+    return rawApellido;
+  }
+
+  return existingFullName.trim();
+}
+
 router.put('/', verifyToken, async (req, res) => {
   try {
     const { id, nombre, apellido, email, empresa, telefono, direccion, ciudad, pais } = req.body;
 
-    console.log('[PUT /api/clientes] Datos recibidos:', { id, nombre, apellido, email, empresa, telefono, direccion, ciudad, pais });
+    console.log('[PUT /api/clientes] req.body:', req.body);
 
-    if (!id || !empresa) {
-      console.log('[PUT /api/clientes] Validación fallida - ID o empresa vacíos');
-      return res.status(400).json({ success: false, message: 'ID y empresa son requeridos' });
+    if (!id) {
+      console.log('[PUT /api/clientes] Validación fallida - ID vacío');
+      return res.status(400).json({ success: false, message: 'ID es requerido para actualizar el cliente' });
     }
 
     const { data: cliente, error: clienteError } = await supabase
@@ -152,6 +181,22 @@ router.put('/', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cliente sin usuario asociado' });
     }
 
+    let existingUserName = '';
+    if (nombre || apellido) {
+      const { data: usuarioActual, error: userFetchError } = await supabase
+        .from('usuarios')
+        .select('nombre')
+        .eq('id', cliente.usuario_id)
+        .single();
+
+      if (userFetchError) {
+        console.error('Error obteniendo usuario actual para full name:', userFetchError);
+        return res.status(500).json({ success: false, message: 'Error al obtener datos del usuario' });
+      }
+
+      existingUserName = usuarioActual?.nombre || '';
+    }
+
     const clienteUpdate = {};
     if (empresa) clienteUpdate.empresa = empresa;
     if (telefono) clienteUpdate.telefono = telefono;
@@ -161,7 +206,7 @@ router.put('/', verifyToken, async (req, res) => {
 
     const usuarioUpdate = {};
     if (nombre || apellido) {
-      const fullName = [nombre, apellido].filter(Boolean).join(' ').trim();
+      const fullName = buildFullName(nombre, apellido, existingUserName);
       if (fullName) usuarioUpdate.nombre = fullName;
     }
     if (email) usuarioUpdate.email = email;
