@@ -75,10 +75,11 @@ module.exports = async (req, res) => {
       }
 
       const password = generateTemporaryPassword(nombre, apellido);
+      const hashedPassword = await bcrypt.hash(password, 10);
       const nombreCompleto = `${nombre.trim()} ${apellido.trim()}`;
       const { data: usuario, error: insertUserError } = await supabase
         .from('usuarios')
-        .insert({ nombre: nombreCompleto, email, password, rol: 'Técnico', estado: true })
+        .insert({ nombre: nombreCompleto, email, password: hashedPassword, rol: 'Técnico', estado: true, needs_password_change: true })
         .select('id')
         .single();
 
