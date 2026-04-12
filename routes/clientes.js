@@ -32,20 +32,7 @@ router.get('/', verifyToken, async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
     }
 
-    const clientes = (data || []).map(cliente => {
-      if (cliente.usuario?.nombre) {
-        const { nombre: parsedNombre, apellido: parsedApellido } = splitUsuarioFullName(cliente.usuario.nombre);
-        return {
-          ...cliente,
-          usuario: {
-            ...cliente.usuario,
-            nombre: parsedNombre,
-            apellido: parsedApellido
-          }
-        };
-      }
-      return cliente;
-    });
+    const clientes = (data || []).map(formatClienteUsuario);
 
     return res.status(200).json({ success: true, clientes });
   } catch (error) {
@@ -185,6 +172,19 @@ function splitUsuarioFullName(fullName = '') {
   }
   const apellido = parts.pop();
   return { nombre: parts.join(' '), apellido };
+}
+
+function formatClienteUsuario(cliente) {
+  if (!cliente || !cliente.usuario) return cliente;
+  const parsed = splitUsuarioFullName(cliente.usuario.nombre);
+  return {
+    ...cliente,
+    usuario: {
+      ...cliente.usuario,
+      nombre: parsed.nombre,
+      apellido: parsed.apellido
+    }
+  };
 }
 
 router.put('/', verifyToken, async (req, res) => {
@@ -396,7 +396,7 @@ router.get('/me', verifyToken, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
     }
 
-    return res.status(200).json({ success: true, cliente: data });
+    return res.status(200).json({ success: true, cliente: formatClienteUsuario(data) });
   } catch (error) {
     console.error('Error clientes /me:', error);
     return res.status(500).json({ success: false, message: 'Error al obtener información del cliente' });
