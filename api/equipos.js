@@ -105,6 +105,40 @@ module.exports = async (req, res) => {
     }
   }
 
+  if (req.method === 'DELETE') {
+    try {
+      if (!resourceId) {
+        return res.status(400).json({ success: false, message: 'ID del equipo es requerido' });
+      }
+
+      const { data: equipo, error: selectError } = await supabase
+        .from('equipos_climatizacion')
+        .select('id')
+        .eq('id', resourceId)
+        .single();
+
+      if (selectError || !equipo) {
+        console.error('Error buscando equipo para eliminar:', selectError);
+        return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+      }
+
+      const { error: deleteError } = await supabase
+        .from('equipos_climatizacion')
+        .delete()
+        .eq('id', resourceId);
+
+      if (deleteError) {
+        console.error('Error eliminando equipo:', deleteError);
+        return res.status(500).json({ success: false, message: 'Error al eliminar el equipo' });
+      }
+
+      return res.status(200).json({ success: true, message: 'Equipo eliminado correctamente' });
+    } catch (error) {
+      console.error('Error equipos DELETE:', error);
+      return res.status(500).json({ success: false, message: 'Error al eliminar el equipo' });
+    }
+  }
+
   if (req.method === 'POST') {
     try {
       const payload = await parseJsonBody(req);
