@@ -228,10 +228,9 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (confirm('¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.')) {
             try {
-                const response = await fetch(`${apiBase}/api/equipos`, {
+                const response = await fetch(`${apiBase}/api/equipos/${equipoId}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                    body: JSON.stringify({ id: equipoId })
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() }
                 });
                 if (handleUnauthorized(response)) return;
                 const data = await response.json();
@@ -824,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
 
                 try {
-                    const response = await fetch(`${apiBase}/api/equipos`, {
+                    const response = await fetch(`${apiBase}/api/equipos/${equipoId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', ...authHeaders() },
                         body: JSON.stringify(payload)
