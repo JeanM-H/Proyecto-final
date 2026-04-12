@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const supabase = require('./supabaseClient');
+const { generateToken } = require('../middleware/auth');
 
 function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
@@ -73,9 +74,12 @@ module.exports = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado, contraseña inválida o rol incorrecto' });
     }
 
+    const token = generateToken({ id: user.id, email: user.email, rol: user.rol });
+
     return res.status(200).json({
       success: true,
       message: 'Login exitoso',
+      token,
       needsPasswordChange: Boolean(user.needs_password_change),
       user: {
         id: user.id,
