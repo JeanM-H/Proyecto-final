@@ -87,6 +87,7 @@ router.post('/', verifyToken, async (req, res) => {
     const { data: cliente, error: insertClienteError } = await supabase
       .from('clientes')
       .insert({ usuario_id: usuario.id, empresa, telefono, direccion, ciudad, pais })
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at')
       .single();
 
     if (insertClienteError) {
@@ -94,10 +95,21 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error al crear el cliente' });
     }
 
+    const { data: clienteFinal, error: clienteFinalError } = await supabase
+      .from('clientes')
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
+      .eq('usuario_id', usuario.id)
+      .single();
+
+    if (clienteFinalError) {
+      console.error('Error obteniendo cliente creado:', clienteFinalError);
+      return res.status(500).json({ success: false, message: 'Error al obtener el cliente creado' });
+    }
+
     return res.status(201).json({
       success: true,
       message: 'Cliente creado correctamente',
-      cliente,
+      cliente: clienteFinal || cliente,
       generatedPassword: password
     });
   } catch (error) {
