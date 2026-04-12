@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
         clienteForm.dataset.mode = 'edit';
         clienteForm.dataset.clienteId = clienteId;
 
-        openDrawer('cliente');
+        openDrawer('cliente', { mode: 'edit' });
     }
 
     async function handleDeleteCliente(event) {
@@ -990,7 +990,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function openDrawer(formType) {
+    function openDrawer(formType, options = {}) {
         if (!drawer) return;
         drawerForms.forEach(form => {
             form.classList.remove('active');
@@ -1001,19 +1001,24 @@ document.addEventListener('DOMContentLoaded', function () {
         activeForm.classList.add('active');
         activeForm.classList.remove('hidden');
         
-        // Resetear formulario de cliente si está en modo crear
         if (formType === 'cliente') {
             const clienteForm = document.getElementById('cliente-form');
-            drawerTitle.textContent = 'Crear Cliente';
-            clienteForm.dataset.mode = 'create';
-            delete clienteForm.dataset.clienteId;
-            clienteForm.reset();
-            const messageEl = document.getElementById('cliente-form-message');
-            if (messageEl) messageEl.textContent = '';
-            // Limpiar los campos que no se resetean con reset()
-            document.getElementById('cliente-nombre').value = '';
-            document.getElementById('cliente-apellido').value = '';
-            document.getElementById('cliente-email').value = '';
+            const mode = options.mode || clienteForm.dataset.mode || 'create';
+            clienteForm.dataset.mode = mode;
+
+            if (mode === 'create') {
+                drawerTitle.textContent = 'Crear Cliente';
+                delete clienteForm.dataset.clienteId;
+                clienteForm.reset();
+                const messageEl = document.getElementById('cliente-form-message');
+                if (messageEl) messageEl.textContent = '';
+                // Limpiar los campos que no se resetean con reset()
+                document.getElementById('cliente-nombre').value = '';
+                document.getElementById('cliente-apellido').value = '';
+                document.getElementById('cliente-email').value = '';
+            } else {
+                drawerTitle.textContent = 'Editar Cliente';
+            }
         } else {
             drawerTitle.textContent = activeForm.dataset.title || 'Formulario';
         }
