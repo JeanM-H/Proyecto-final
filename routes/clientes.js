@@ -131,10 +131,26 @@ router.put('/', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cliente sin usuario asociado' });
     }
 
-    if (nombre || apellido || email) {
+    const clienteUpdate = {};
+    if (empresa) clienteUpdate.empresa = empresa;
+    if (telefono) clienteUpdate.telefono = telefono;
+    if (direccion) clienteUpdate.direccion = direccion;
+    if (ciudad) clienteUpdate.ciudad = ciudad;
+    if (pais) clienteUpdate.pais = pais;
+
+    const usuarioUpdate = {};
+    if (nombre) usuarioUpdate.nombre = nombre;
+    if (apellido) usuarioUpdate.apellido = apellido;
+    if (email) usuarioUpdate.email = email;
+
+    if (Object.keys(clienteUpdate).length === 0 && Object.keys(usuarioUpdate).length === 0) {
+      return res.status(400).json({ success: false, message: 'Debe proporcionar al menos un dato para actualizar' });
+    }
+
+    if (Object.keys(usuarioUpdate).length > 0) {
       const { error: userUpdateError } = await supabase
         .from('usuarios')
-        .update({ nombre, apellido, email })
+        .update(usuarioUpdate)
         .eq('id', cliente.usuario_id);
 
       if (userUpdateError) {
@@ -143,22 +159,35 @@ router.put('/', verifyToken, async (req, res) => {
       }
     }
 
-    const { data: updatedCliente, error: updateError } = await supabase
-      .from('clientes')
-      .update({ empresa, telefono, direccion, ciudad, pais })
-      .eq('id', id)
-      .select()
-      .single();
+    let updatedCliente = null;
+    let updateError = null;
+
+    if (Object.keys(clienteUpdate).length > 0) {
+      const result = await supabase
+        .from('clientes')
+        .update(clienteUpdate)
+        .eq('id', id)
+        .select()
+        .single();
+      updatedCliente = result.data;
+      updateError = result.error;
+    }
 
     if (updateError) {
       console.error('Error actualizando cliente:', updateError);
       return res.status(500).json({ success: false, message: 'Error al actualizar cliente' });
     }
 
+    const { data: clienteFinal } = await supabase
+      .from('clientes')
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, apellido, email)')
+      .eq('id', id)
+      .single();
+
     return res.status(200).json({
       success: true,
       message: 'Cliente actualizado correctamente',
-      cliente: updatedCliente
+      cliente: clienteFinal || updatedCliente
     });
   } catch (error) {
     console.error('Error clientes PUT:', error);
