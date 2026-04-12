@@ -32,7 +32,22 @@ router.get('/', verifyToken, async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
     }
 
-    return res.status(200).json({ success: true, clientes: data || [] });
+    const clientes = (data || []).map(cliente => {
+      if (cliente.usuario?.nombre) {
+        const { nombre: parsedNombre, apellido: parsedApellido } = splitUsuarioFullName(cliente.usuario.nombre);
+        return {
+          ...cliente,
+          usuario: {
+            ...cliente.usuario,
+            nombre: parsedNombre,
+            apellido: parsedApellido
+          }
+        };
+      }
+      return cliente;
+    });
+
+    return res.status(200).json({ success: true, clientes });
   } catch (error) {
     console.error('Error clientes:', error);
     return res.status(500).json({ success: false, message: 'Error al obtener clientes' });
@@ -110,10 +125,18 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error al obtener el cliente creado' });
     }
 
+    const clienteConUsuario = clienteFinal ? {
+      ...clienteFinal,
+      usuario: {
+        ...clienteFinal.usuario,
+        ...splitUsuarioFullName(clienteFinal.usuario?.nombre)
+      }
+    } : cliente;
+
     return res.status(201).json({
       success: true,
       message: 'Cliente creado correctamente',
-      cliente: clienteFinal || cliente,
+      cliente: clienteConUsuario,
       generatedPassword: password
     });
   } catch (error) {
@@ -150,6 +173,18 @@ function buildFullName(nombre, apellido, existingFullName = '') {
   }
 
   return existingFullName.trim();
+}
+
+function splitUsuarioFullName(fullName = '') {
+  const parts = (fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return { nombre: '', apellido: '' };
+  }
+  if (parts.length === 1) {
+    return { nombre: parts[0], apellido: '' };
+  }
+  const apellido = parts.pop();
+  return { nombre: parts.join(' '), apellido };
 }
 
 router.put('/', verifyToken, async (req, res) => {
@@ -253,18 +288,44 @@ router.put('/', verifyToken, async (req, res) => {
       return res.status(500).json({ success: false, message: 'Error al actualizar cliente' });
     }
 
-    const { data: clienteFinal } = await supabase
+    const { data: clienteFinal, error: clienteFinalError } = await supabase
       .from('clientes')
       .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
       .eq('id', id)
       .single();
 
-    console.log('[PUT /api/clientes] Cliente final retornado:', clienteFinal);
+    if (clienteFinalError) {
+      console.error('[PUT /api/clientes] Error obteniendo cliente final:', clienteFinalError);
+      return res.status(500).json({ success: false, message: 'Error al obtener el cliente actualizado' });
+    }
+
+    const finalCliente = clienteFinal || updatedCliente;
+
+    if (finalCliente && !finalCliente.usuario && finalCliente.usuario_id) {
+      const { data: usuarioFallback, error: usuarioFallbackError } = await supabase
+        .from('usuarios')
+        .select('nombre, email')
+        .eq('id', finalCliente.usuario_id)
+        .single();
+
+      if (!usuarioFallbackError && usuarioFallback) {
+        finalCliente.usuario = usuarioFallback;
+      }
+    }
+
+    if (finalCliente?.usuario?.nombre) {
+      finalCliente.usuario = {
+        ...finalCliente.usuario,
+        ...splitUsuarioFullName(finalCliente.usuario.nombre)
+      };
+    }
+
+    console.log('[PUT /api/clientes] Cliente final retornado:', finalCliente);
 
     return res.status(200).json({
       success: true,
       message: 'Cliente actualizado correctamente',
-      cliente: clienteFinal || updatedCliente
+      cliente: finalCliente
     });
   } catch (error) {
     console.error('Error clientes PUT:', error);
