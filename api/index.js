@@ -36,7 +36,7 @@ const routeHandlers = {
 module.exports = async (req, res) => {
   const origin = req.headers.origin || '*';
   res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -58,7 +58,8 @@ module.exports = async (req, res) => {
     });
   }
 
-  const handlerPath = routeHandlers[pathname];
+  const normalizedPath = routeHandlers[pathname] ? pathname : pathname.split('/').slice(0, 3).join('/');
+  const handlerPath = routeHandlers[normalizedPath];
   if (handlerPath) {
     try {
       const handler = require(path.join(__dirname, handlerPath));
