@@ -153,9 +153,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!cliente) return;
 
-        document.getElementById('cliente-nombre').value = '';
-        document.getElementById('cliente-apellido').value = '';
-        document.getElementById('cliente-email').value = '';
+        document.getElementById('cliente-nombre').value = cliente.usuario?.nombre || '';
+        document.getElementById('cliente-apellido').value = cliente.usuario?.apellido || '';
+        document.getElementById('cliente-email').value = cliente.usuario?.email || '';
         document.getElementById('cliente-empresa').value = cliente.empresa || '';
         document.getElementById('cliente-telefono').value = cliente.telefono || '';
         document.getElementById('cliente-direccion').value = cliente.direccion || '';
@@ -696,6 +696,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (mode === 'edit') {
                     payload.id = clienteId;
+                    payload.nombre = document.getElementById('cliente-nombre').value.trim();
+                    payload.apellido = document.getElementById('cliente-apellido').value.trim();
+                    payload.email = document.getElementById('cliente-email').value.trim();
                     try {
                         const response = await fetch(`${apiBase}/api/clientes`, {
                             method: 'PUT',

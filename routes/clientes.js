@@ -24,7 +24,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('clientes')
-      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, apellido, email)')
       .order('id', { ascending: true });
 
     if (error) {
@@ -110,13 +110,40 @@ router.post('/', verifyToken, async (req, res) => {
 // PUT /api/clientes
 router.put('/', verifyToken, async (req, res) => {
   try {
-    const { id, empresa, telefono, direccion, ciudad, pais } = req.body;
+    const { id, nombre, apellido, email, empresa, telefono, direccion, ciudad, pais } = req.body;
 
     if (!id || !empresa) {
       return res.status(400).json({ success: false, message: 'ID y empresa son requeridos' });
     }
 
-    const { data: cliente, error: updateError } = await supabase
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .select('usuario_id')
+      .eq('id', id)
+      .single();
+
+    if (clienteError || !cliente) {
+      console.error('Error obteniendo cliente para actualizar:', clienteError);
+      return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+    }
+
+    if (!cliente.usuario_id) {
+      return res.status(400).json({ success: false, message: 'Cliente sin usuario asociado' });
+    }
+
+    if (nombre || apellido || email) {
+      const { error: userUpdateError } = await supabase
+        .from('usuarios')
+        .update({ nombre, apellido, email })
+        .eq('id', cliente.usuario_id);
+
+      if (userUpdateError) {
+        console.error('Error actualizando usuario del cliente:', userUpdateError);
+        return res.status(500).json({ success: false, message: 'Error al actualizar los datos del usuario' });
+      }
+    }
+
+    const { data: updatedCliente, error: updateError } = await supabase
       .from('clientes')
       .update({ empresa, telefono, direccion, ciudad, pais })
       .eq('id', id)
