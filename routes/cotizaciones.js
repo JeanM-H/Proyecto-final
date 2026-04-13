@@ -1,6 +1,6 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('cotizaciones')
@@ -58,7 +58,7 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { cliente_id, descripcion, monto_estimado } = req.body;
 
@@ -83,7 +83,7 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const cotizacionId = Number(req.params.id);
     const { estado, descripcion, monto_estimado, fecha_respuesta } = req.body;
@@ -116,7 +116,7 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const cotizacionId = Number(req.params.id);
 

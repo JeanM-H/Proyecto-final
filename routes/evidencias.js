@@ -1,6 +1,6 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('evidencias')
@@ -79,11 +79,43 @@ router.post('/', verifyToken, async (req, res) => {
 
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
-    const { id } = req.params;
+    const evidenciaId = Number(req.params.id);
+    const userId = req.user.id;
+    const userRol = req.user.rol;
+
+    // Verificar que la evidencia existe y pertenece al técnico
+    const { data: evidencia, error: selectError } = await supabase
+      .from('evidencias')
+      .select(`
+        mantenimiento_id,
+        mantenimientos:mantenimiento_id (
+          tecnico_id
+        )
+      `)
+      .eq('id', evidenciaId)
+      .single();
+
+    if (selectError || !evidencia) {
+      return res.status(404).json({ success: false, message: 'Evidencia no encontrada' });
+    }
+
+    // Verificar permisos
+    if (userRol !== 'Administrador') {
+      const { data: tecnico, error: tecnicoError } = await supabase
+        .from('tecnicos')
+        .select('id')
+        .eq('usuario_id', userId)
+        .single();
+
+      if (tecnicoError || !tecnico || tecnico.id !== evidencia.mantenimientos.tecnico_id) {
+        return res.status(403).json({ success: false, message: 'No autorizado para eliminar esta evidencia' });
+      }
+    }
+
     const { error } = await supabase
       .from('evidencias')
       .delete()
-      .eq('id', id);
+      .eq('id', evidenciaId);
 
     if (error) {
       console.error('Error eliminando evidencia:', error);

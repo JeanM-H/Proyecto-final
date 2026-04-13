@@ -1,6 +1,6 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('equipos_climatizacion')
@@ -32,7 +32,7 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado } = req.body;
 
@@ -57,7 +57,7 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const equipoId = Number(req.params.id);
     const { cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado } = req.body;
@@ -84,7 +84,7 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const equipoId = Number(req.params.id);
 

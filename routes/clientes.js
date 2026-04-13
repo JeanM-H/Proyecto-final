@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ function generateTemporaryPassword(nombre, apellido) {
 }
 
 // GET /api/clientes
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('clientes')
@@ -42,7 +42,7 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // POST /api/clientes
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { nombre, apellido, email, empresa, telefono, direccion, ciudad, pais } = req.body;
 
@@ -187,7 +187,7 @@ function formatClienteUsuario(cliente) {
   };
 }
 
-router.put('/', verifyToken, async (req, res) => {
+router.put('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { id, nombre, apellido, email, empresa, telefono, direccion, ciudad, pais } = req.body;
 
@@ -330,7 +330,7 @@ router.put('/', verifyToken, async (req, res) => {
 });
 
 // DELETE /api/clientes
-router.delete('/', verifyToken, async (req, res) => {
+router.delete('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { id } = req.body;
 
@@ -559,6 +559,68 @@ router.post('/me/solicitudes', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error clientes /me/solicitudes:', error);
     return res.status(500).json({ success: false, message: 'Error al crear la solicitud' });
+  }
+});
+
+// GET /api/clientes/me/mantenimientos - Obtener mantenimientos del cliente actual
+router.get('/me/mantenimientos', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Obtener cliente_id
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .select('id')
+      .eq('usuario_id', userId)
+      .maybeSingle();
+
+    if (clienteError || !cliente) {
+      return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+    }
+
+    const { data, error } = await supabase
+      .from('mantenimientos')
+      .select(`
+        id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at,
+        orden:ordenes_mantenimiento(id, tipo, descripcion, estado, equipo:equipos_climatizacion(modelo, marca, serial)),
+        tecnico:tecnicos(especialidad)
+      `)
+      .eq('orden.cliente_id', cliente.id);
+
+    if (error) {
+      console.error('Error obteniendo mantenimientos:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener mantenimientos' });
+    }
+
+    return res.status(200).json({ success: true, mantenimientos: data || [] });
+  } catch (error) {
+    console.error('Error clientes /me/mantenimientos:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener mantenimientos' });
+  }
+});
+
+// PUT /api/clientes/me - Actualizar perfil del cliente actual
+router.put('/me', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { empresa, telefono, direccion, ciudad, pais } = req.body;
+
+    const { data, error } = await supabase
+      .from('clientes')
+      .update({ empresa, telefono, direccion, ciudad, pais })
+      .eq('usuario_id', userId)
+      .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
+      .single();
+
+    if (error) {
+      console.error('Error actualizando cliente:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar el perfil' });
+    }
+
+    return res.status(200).json({ success: true, cliente: formatClienteUsuario(data) });
+  } catch (error) {
+    console.error('Error clientes PUT /me:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar el perfil' });
   }
 });
 

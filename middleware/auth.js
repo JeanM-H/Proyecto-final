@@ -19,6 +19,15 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+const requireRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.rol)) {
+      return res.status(403).json({ success: false, message: 'Acceso denegado: rol insuficiente' });
+    }
+    next();
+  };
+};
+
 const generateToken = (payload) => jwt.sign(payload, secret, { expiresIn: '24h' });
 
-module.exports = { verifyToken, generateToken };
+module.exports = { verifyToken, requireRole, generateToken };

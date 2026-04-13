@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -24,7 +24,7 @@ const generateTemporaryPassword = (nombre, apellido) => {
   return `${base}${digits}`;
 };
 
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('tecnicos')
@@ -67,7 +67,7 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { nombre, apellido, email, especialidad, telefono_contacto } = req.body;
 
@@ -121,7 +121,7 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const tecnicoId = Number(req.params.id);
     const { especialidad, disponible, telefono_contacto } = req.body;
@@ -148,7 +148,7 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const tecnicoId = Number(req.params.id);
 
@@ -180,6 +180,31 @@ router.delete('/:id', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error tecnicos DELETE:', error);
     return res.status(500).json({ success: false, message: 'Error al eliminar técnico' });
+  }
+});
+
+// PUT /api/tecnicos/me - Actualizar perfil del técnico actual
+router.put('/me', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { especialidad, telefono_contacto, disponible } = req.body;
+
+    const { data, error } = await supabase
+      .from('tecnicos')
+      .update({ especialidad, telefono_contacto, disponible })
+      .eq('usuario_id', userId)
+      .select('id, usuario_id, especialidad, disponible, telefono_contacto, usuario:usuarios(nombre, email)')
+      .single();
+
+    if (error) {
+      console.error('Error actualizando técnico:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar el perfil' });
+    }
+
+    return res.status(200).json({ success: true, tecnico: data });
+  } catch (error) {
+    console.error('Error tecnicos PUT /me:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar el perfil' });
   }
 });
 

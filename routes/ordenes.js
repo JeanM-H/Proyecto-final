@@ -1,6 +1,6 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ async function getTechnicianByUserId(userId) {
   return data;
 }
 
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('ordenes_mantenimiento')
@@ -101,7 +101,28 @@ router.get('/:id', verifyToken, async (req, res) => {
 router.put('/:id', verifyToken, async (req, res) => {
   try {
     const ordenId = Number(req.params.id);
+    const userId = req.user.id;
+    const userRol = req.user.rol;
     const { estado, fecha_completada, cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada } = req.body;
+
+    // Verificar que la orden existe
+    const { data: orden, error: selectError } = await supabase
+      .from('ordenes_mantenimiento')
+      .select('tecnico_id')
+      .eq('id', ordenId)
+      .single();
+
+    if (selectError || !orden) {
+      return res.status(404).json({ success: false, message: 'Orden no encontrada' });
+    }
+
+    // Verificar permisos: técnico solo si asignado, admin todos
+    if (userRol !== 'Administrador') {
+      const tecnico = await getTechnicianByUserId(userId);
+      if (!tecnico || tecnico.id !== orden.tecnico_id) {
+        return res.status(403).json({ success: false, message: 'No autorizado para actualizar esta orden' });
+      }
+    }
 
     const updates = {};
     if (estado) updates.estado = estado;
@@ -135,7 +156,7 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const ordenId = Number(req.params.id);
 
@@ -156,7 +177,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
   }
 });
 
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => {
   try {
     const { cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada } = req.body;
 

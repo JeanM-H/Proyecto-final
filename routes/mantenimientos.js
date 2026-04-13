@@ -1,6 +1,6 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -134,6 +134,18 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Orden, notas y tiempo dedicado son requeridos' });
     }
 
+    // Verificar que la orden esté asignada al técnico
+    const { data: orden, error: ordenError } = await supabase
+      .from('ordenes_mantenimiento')
+      .select('id, tecnico_id')
+      .eq('id', orden_id)
+      .eq('tecnico_id', tecnico.id)
+      .maybeSingle();
+
+    if (ordenError || !orden) {
+      return res.status(403).json({ success: false, message: 'Orden no encontrada o no asignada a este técnico' });
+    }
+
     const insertData = {
       orden_id,
       tecnico_id: tecnico.id,
@@ -172,6 +184,105 @@ router.post('/', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error mantenimientos POST:', error);
     return res.status(500).json({ success: false, message: 'Error al registrar mantenimiento' });
+  }
+});
+
+// PUT /api/mantenimientos/:id - Actualizar mantenimiento
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    const mantenimientoId = Number(req.params.id);
+    const userId = req.user.id;
+    const userRol = req.user.rol;
+    const { notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones } = req.body;
+
+    // Verificar que el mantenimiento existe y pertenece al técnico o es admin
+    const { data: mantenimiento, error: selectError } = await supabase
+      .from('mantenimientos')
+      .select('tecnico_id')
+      .eq('id', mantenimientoId)
+      .single();
+
+    if (selectError || !mantenimiento) {
+      return res.status(404).json({ success: false, message: 'Mantenimiento no encontrado' });
+    }
+
+    // Verificar permisos: técnico solo su mantenimiento, admin todos
+    if (userRol !== 'Administrador') {
+      const { data: tecnico, error: tecnicoError } = await supabase
+        .from('tecnicos')
+        .select('id')
+        .eq('usuario_id', userId)
+        .single();
+
+      if (tecnicoError || !tecnico || tecnico.id !== mantenimiento.tecnico_id) {
+        return res.status(403).json({ success: false, message: 'No autorizado para editar este mantenimiento' });
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('mantenimientos')
+      .update({ notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones })
+      .eq('id', mantenimientoId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error actualizando mantenimiento:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar mantenimiento' });
+    }
+
+    return res.status(200).json({ success: true, mantenimiento: data });
+  } catch (error) {
+    console.error('Error mantenimientos PUT:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar mantenimiento' });
+  }
+});
+
+// DELETE /api/mantenimientos/:id - Eliminar mantenimiento
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const mantenimientoId = Number(req.params.id);
+    const userId = req.user.id;
+    const userRol = req.user.rol;
+
+    // Verificar que el mantenimiento existe y pertenece al técnico o es admin
+    const { data: mantenimiento, error: selectError } = await supabase
+      .from('mantenimientos')
+      .select('tecnico_id')
+      .eq('id', mantenimientoId)
+      .single();
+
+    if (selectError || !mantenimiento) {
+      return res.status(404).json({ success: false, message: 'Mantenimiento no encontrado' });
+    }
+
+    // Verificar permisos
+    if (userRol !== 'Administrador') {
+      const { data: tecnico, error: tecnicoError } = await supabase
+        .from('tecnicos')
+        .select('id')
+        .eq('usuario_id', userId)
+        .single();
+
+      if (tecnicoError || !tecnico || tecnico.id !== mantenimiento.tecnico_id) {
+        return res.status(403).json({ success: false, message: 'No autorizado para eliminar este mantenimiento' });
+      }
+    }
+
+    const { error } = await supabase
+      .from('mantenimientos')
+      .delete()
+      .eq('id', mantenimientoId);
+
+    if (error) {
+      console.error('Error eliminando mantenimiento:', error);
+      return res.status(500).json({ success: false, message: 'Error al eliminar mantenimiento' });
+    }
+
+    return res.status(200).json({ success: true, message: 'Mantenimiento eliminado correctamente' });
+  } catch (error) {
+    console.error('Error mantenimientos DELETE:', error);
+    return res.status(500).json({ success: false, message: 'Error al eliminar mantenimiento' });
   }
 });
 
