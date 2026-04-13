@@ -121,9 +121,13 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             if (handleUnauthorized(ordenesResponse)) return;
             const ordenesData = await ordenesResponse.json();
-            if (ordenesResponse.ok && ordenesData.success) {
-                const ordenesActivas = ordenesData.ordenes.filter(o => o.estado !== 'Completado' && o.estado !== 'Cancelado').length;
+            if (ordenesResponse.ok && ordenesData?.success) {
+                const ordenes = Array.isArray(ordenesData.ordenes) ? ordenesData.ordenes : [];
+                const ordenesActivas = ordenes.filter(o => o.estado !== 'Completado' && o.estado !== 'Cancelado').length;
                 elements.metricOrdenesActivas.textContent = ordenesActivas;
+            } else {
+                console.warn('Metricas cliente: respuesta inválida de ordenes', ordenesData);
+                elements.metricOrdenesActivas.textContent = '0';
             }
 
             // Obtener cotizaciones pendientes
@@ -132,9 +136,12 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             if (handleUnauthorized(cotizacionesResponse)) return;
             const cotizacionesData = await cotizacionesResponse.json();
-            if (cotizacionesResponse.ok && cotizacionesData.success) {
-                const cotizacionesPendientes = cotizacionesData.cotizaciones.filter(c => c.estado === 'Pendiente').length;
+            if (cotizacionesResponse.ok && cotizacionesData?.success) {
+                const cotizaciones = Array.isArray(cotizacionesData.cotizaciones) ? cotizacionesData.cotizaciones : [];
+                const cotizacionesPendientes = cotizaciones.filter(c => c.estado === 'Pendiente').length;
                 elements.metricCotizacionesPendientes.textContent = cotizacionesPendientes;
+            } else {
+                elements.metricCotizacionesPendientes.textContent = '0';
             }
 
             // Obtener equipos
@@ -143,9 +150,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             if (handleUnauthorized(equiposResponse)) return;
             const equiposData = await equiposResponse.json();
-            if (equiposResponse.ok && equiposData.success) {
-                elements.metricEquipos.textContent = equiposData.equipos.length;
-                options.equipos = equiposData.equipos;
+            if (equiposResponse.ok && equiposData?.success) {
+                const equipos = Array.isArray(equiposData.equipos) ? equiposData.equipos : [];
+                elements.metricEquipos.textContent = equipos.length;
+                options.equipos = equipos;
+                populateEquiposSelect();
+            } else {
+                elements.metricEquipos.textContent = '0';
+                options.equipos = [];
                 populateEquiposSelect();
             }
         } catch (error) {
@@ -163,11 +175,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             if (handleUnauthorized(response)) return;
             const data = await response.json();
-            if (!response.ok || !data.success) {
+            if (!response.ok || !data?.success) {
                 elements.ordenesTableBody.innerHTML = '<tr><td colspan="6">No se pudieron cargar las órdenes.</td></tr>';
                 return;
             }
-            const ordenes = data.ordenes || [];
+            const ordenes = Array.isArray(data.ordenes) ? data.ordenes : [];
             if (ordenes.length === 0) {
                 elements.ordenesTableBody.innerHTML = '<tr><td colspan="6">No tienes órdenes registradas.</td></tr>';
                 return;
