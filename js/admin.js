@@ -699,51 +699,33 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">Cargando evidencias...</td></tr>';
 
         try {
-            // Fetch mantenimientos first to get all evidence
-            const response = await fetch(`${apiBase}/api/mantenimientos`, {
+            const response = await fetch(`${apiBase}/api/evidencias`, {
                 headers: authHeaders()
             });
             if (handleUnauthorized(response)) return;
             const data = await response.json();
+            
             if (!response.ok || !data.success) {
                 elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">No se pudieron cargar las evidencias.</td></tr>';
                 return;
             }
             
-            const mantenimientos = data.mantenimientos || [];
-            let allEvidencias = [];
-            
-            // Fetch evidence for each maintenance
-            for (const mant of mantenimientos) {
-                try {
-                    const evidResponse = await fetch(`${apiBase}/api/evidencias/mantenimiento/${mant.id}`, {
-                        headers: authHeaders()
-                    });
-                    if (evidResponse.ok) {
-                        const evidData = await evidResponse.json();
-                        if (evidData.success && evidData.data) {
-                            allEvidencias = allEvidencias.concat(evidData.data.map(e => ({ ...e, mantenimiento_id: mant.id })));
-                        }
-                    }
-                } catch (err) {
-                    console.warn('Could not fetch evidences for mantenimiento', mant.id);
-                }
-            }
-            
-            if (allEvidencias.length === 0) {
+            const evidencias = data.data || [];
+            if (evidencias.length === 0) {
                 elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">No hay evidencias registradas.</td></tr>';
                 return;
             }
             
             elements.evidenciasTableBody.innerHTML = '';
-            allEvidencias.forEach(evidencia => {
+            evidencias.forEach(evidencia => {
                 const row = document.createElement('tr');
                 const tipoClass = `badge-${evidencia.tipo.toLowerCase()}`;
                 const fecha = new Date(evidencia.created_at).toLocaleDateString('es-CO');
+                const tecnico = evidencia.mantenimientos?.tecnicos?.usuarios?.nombre || 'Técnico N/A';
                 row.innerHTML = `
                     <td>${evidencia.id}</td>
                     <td>${evidencia.mantenimiento_id}</td>
-                    <td>${evidencia.archivo_nombre || 'N/A'}</td>
+                    <td class="archivo-nombre">${evidencia.archivo_nombre || 'N/A'}</td>
                     <td><span class="badge ${tipoClass}">${evidencia.tipo}</span></td>
                     <td>${evidencia.descripcion || 'N/A'}</td>
                     <td>${fecha}</td>
@@ -751,8 +733,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="action-menu">
                             <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${evidencia.id}">⋮</button>
                             <div class="action-menu-dropdown hidden" role="menu">
-                                <button type="button" class="action-menu-item action-menu-view" data-id="${evidencia.id}" role="menuitem">Ver</button>
-                                <button type="button" class="action-menu-item action-menu-delete" data-id="${evidencia.id}" role="menuitem">Eliminar</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${evidencia.id}" data-table="evidencias" role="menuitem">Eliminar</button>
                             </div>
                         </div>
                     </td>
@@ -761,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         } catch (error) {
             console.error('Error cargando evidencias:', error);
-            elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">Error al cargar evidencias.</td></tr>';
+            elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">Error al cargar evidencias: ' + error.message + '</td></tr>';
         }
     }
 
@@ -872,6 +853,32 @@ document.addEventListener('DOMContentLoaded', function () {
         
         drawer.classList.add('open');
         drawerBackdrop.classList.add('open');
+    }
+
+    async function handleDeleteEvidencia(event) {
+        const evidenciaId = parseInt(event.target.dataset.id);
+        
+        if (confirm('¿Estás seguro de que deseas eliminar esta evidencia? Esta acción no se puede deshacer.')) {
+            try {
+                const response = await fetch(`${apiBase}/api/evidencias/${evidenciaId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() }
+                });
+                if (handleUnauthorized(response)) return;
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert('Evidencia eliminada correctamente.');
+                    fetchEvidencias();
+                    fetchMetrics();
+                } else {
+                    alert(data.message || 'Error al eliminar evidencia.');
+                }
+            } catch (error) {
+                console.error('Error eliminando evidencia:', error);
+                alert('Error de conexión al eliminar.');
+            }
+        }
     }
 
     function bindForms() {
@@ -1445,6 +1452,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 const deleteButton = event.target.closest('.action-menu-delete');
                 if (deleteButton) {
                     handleDeleteRepuesto({ target: deleteButton });
+                    closeActionMenus();
+                    return;
+                }
+            });
+        }
+
+        // Event listeners para evidencias
+        if (elements.evidenciasTableBody) {
+            elements.evidenciasTableBody.addEventListener('click', event => {
+                const trigger = event.target.closest('.action-menu-trigger');
+                if (trigger) {
+                    event.stopPropagation();
+                    toggleActionMenu(trigger);
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.action-menu-delete');
+                if (deleteButton) {
+                    handleDeleteEvidencia({ target: deleteButton });
                     closeActionMenus();
                     return;
                 }

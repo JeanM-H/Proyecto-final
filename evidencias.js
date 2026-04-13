@@ -58,6 +58,32 @@ module.exports = async (req, res) => {
       return res.status(401).json({ success: false, message: 'No autorizado' });
     }
 
+    // GET /api/evidencias - Obtener todas las evidencias
+    if (req.method === 'GET' && pathname === '/api/evidencias') {
+      const { data, error } = await supabase
+        .from('evidencias')
+        .select(`
+          *,
+          mantenimientos:mantenimiento_id (
+            id,
+            orden_id,
+            notas,
+            tecnico_id,
+            tecnicos:tecnico_id (
+              id,
+              usuario_id,
+              usuarios:usuario_id (nombre)
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        return res.status(500).json({ success: false, message: error.message });
+      }
+      return res.status(200).json({ success: true, data });
+    }
+
     // GET /api/evidencias/mantenimiento/:id - Obtener evidencias de un mantenimiento
     if (req.method === 'GET' && pathname.includes('/mantenimiento/')) {
       const maintId = parseInt(id);
