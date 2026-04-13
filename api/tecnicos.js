@@ -30,12 +30,17 @@ function generateTemporaryPassword(nombre, apellido) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
+
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const pathname = url.pathname;
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const tecnicoId = pathSegments.length >= 3 ? Number(pathSegments[2]) : null;
 
   if (req.method === 'GET') {
     try {
@@ -133,6 +138,47 @@ module.exports = async (req, res) => {
     } catch (error) {
       console.error('Error tecnicos POST:', error);
       return res.status(500).json({ success: false, message: 'Error al crear técnico' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    if (!tecnicoId) {
+      return res.status(400).json({ success: false, message: 'ID de técnico inválido' });
+    }
+
+    try {
+      const { data: tecnico, error: selectError } = await supabase
+        .from('tecnicos')
+        .select('usuario_id')
+        .eq('id', tecnicoId)
+        .maybeSingle();
+
+      if (selectError || !tecnico) {
+        return res.status(404).json({ success: false, message: 'Técnico no encontrado' });
+      }
+
+      const { error: deleteTecnicoError } = await supabase
+        .from('tecnicos')
+        .delete()
+        .eq('id', tecnicoId);
+
+      if (deleteTecnicoError) {
+        console.error('Error eliminando técnico:', deleteTecnicoError);
+        return res.status(500).json({ success: false, message: 'Error al eliminar técnico' });
+      }
+
+      if (tecnico.usuario_id) {
+        const { error: deleteUserError } = await supabase.from('usuarios').delete().eq('id', tecnico.usuario_id);
+        if (deleteUserError) {
+          console.error('Error eliminando usuario asociado:', deleteUserError);
+          return res.status(500).json({ success: false, message: 'Error al eliminar usuario asociado' });
+        }
+      }
+
+      return res.status(200).json({ success: true, message: 'Técnico eliminado correctamente' });
+    } catch (error) {
+      console.error('Error tecnicos DELETE:', error);
+      return res.status(500).json({ success: false, message: 'Error al eliminar técnico' });
     }
   }
 
