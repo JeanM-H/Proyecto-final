@@ -299,8 +299,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             options.equipos = equipos;
             populateEquiposSelect();
-            // Rebind después de renderizar
-            setTimeout(() => bindActionMenuEvents(), 100);
         } catch (error) {
             console.error('Error cargando equipos:', error);
             elements.equiposTableBody.innerHTML = '<tr><td colspan="8">Error al cargar equipos.</td></tr>';
@@ -486,46 +484,45 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindActionMenuEvents() {
-        console.log('bindActionMenuEvents: usando event delegation en document.body');
+        console.log('bindActionMenuEvents: agregando listener global al document.body');
 
-        // Test: Verificar si la tabla existe y tiene contenido
-        const tbody = document.getElementById('equipos-table-body');
-        console.log('tbody encontrado:', tbody);
-        if (tbody) {
-            console.log('tbody innerHTML:', tbody.innerHTML);
-            console.log('Botones encontrados:', tbody.querySelectorAll('.action-menu-trigger').length);
-        }
+        // Usar delegación en el body - necesita ser global porque la tabla se recarga dinámicamente
+        document.body.addEventListener('click', event => {
+            // Solo procesar si está dentro de la tabla de equipos
+            const equiposBtn = event.target.closest('.action-menu-trigger, .action-menu-edit, .action-menu-delete');
+            if (!equiposBtn) return;
+            
+            // Verificar que esté dentro de la tabla de equipos
+            if (!event.target.closest('#equipos-table-body')) return;
 
-        // Capturar TODOS los clics en el tbody para debuguear
-        if (tbody) {
-            tbody.addEventListener('click', event => {
-                console.log('*** CLICK EN TABLA ***', event.target.tagName, event.target.className);
+            console.log('*** CLICK en botón de equipos ***', equiposBtn.className);
+            
+            const trigger = event.target.closest('.action-menu-trigger');
+            if (trigger) {
+                console.log('✓ Trigger encontrado');
                 event.stopPropagation();
-                
-                const trigger = event.target.closest('.action-menu-trigger');
-                if (trigger) {
-                    console.log('✓ Trigger encontrado');
-                    toggleActionMenu(trigger);
-                    return;
-                }
+                toggleActionMenu(trigger);
+                return;
+            }
 
-                const editButton = event.target.closest('.action-menu-edit');
-                if (editButton) {
-                    console.log('✓ Editar encontrado');
-                    handleEditEquipo({ target: editButton });
-                    closeActionMenus();
-                    return;
-                }
+            const editButton = event.target.closest('.action-menu-edit');
+            if (editButton) {
+                console.log('✓ Editar encontrado, ID:', editButton.dataset.id);
+                event.stopPropagation();
+                handleEditEquipo({ target: editButton });
+                closeActionMenus();
+                return;
+            }
 
-                const deleteButton = event.target.closest('.action-menu-delete');
-                if (deleteButton) {
-                    console.log('✓ Eliminar encontrado');
-                    handleDeleteEquipo({ target: deleteButton });
-                    closeActionMenus();
-                    return;
-                }
-            }, true); // usar captura
-        }
+            const deleteButton = event.target.closest('.action-menu-delete');
+            if (deleteButton) {
+                console.log('✓ Eliminar encontrado, ID:', deleteButton.dataset.id);
+                event.stopPropagation();
+                handleDeleteEquipo({ target: deleteButton });
+                closeActionMenus();
+                return;
+            }
+        });
     }
 
     // Formulario de edición de equipo
