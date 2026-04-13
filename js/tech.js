@@ -18,10 +18,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     const orderSummary = document.getElementById('order-summary');
     const maintenanceForm = document.getElementById('maintenance-form');
     const maintenanceHistoryBody = document.getElementById('maintenance-history-body');
+    const evidenciasInput = document.getElementById('maintenance-evidencias');
+    const evidenciasList = document.getElementById('evidencias-list');
 
     let assignedOrders = [];
     let selectedOrder = null;
     let tecnicoId = null;
+    let selectedEvidencias = [];
 
     const setMessage = (message, type = 'info') => {
         if (!messageBox) return;
@@ -229,6 +232,83 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
+    // Manejar selección de evidencias
+    const renderEvidenciasList = () => {
+        if (!evidenciasList) return;
+
+        if (selectedEvidencias.length === 0) {
+            evidenciasList.innerHTML = '';
+            return;
+        }
+
+        evidenciasList.innerHTML = selectedEvidencias.map((file, index) => `
+            <div class="evidencia-item">
+                <span class="evidencia-file-name">${file.name}</span>
+                <span class="evidencia-file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                <button type="button" class="evidencia-remove-btn" onclick="removeEvidencia(${index})">Eliminar</button>
+            </div>
+        `).join('');
+    };
+
+    const removeEvidencia = (index) => {
+        selectedEvidencias.splice(index, 1);
+        renderEvidenciasList();
+    };
+
+    window.removeEvidencia = removeEvidencia;
+
+    if (evidenciasInput) {
+        evidenciasInput.addEventListener('change', event => {
+            selectedEvidencias = Array.from(event.target.files);
+            renderEvidenciasList();
+        });
+    }
+
+    const uploadEvidencias = async (maintenanceId) => {
+        if (selectedEvidencias.length === 0) {
+            return [];
+        }
+
+        const uploadedEvidencias = [];
+
+        for (const file of selectedEvidencias) {
+            try {
+                // Convertir archivo a base64
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                });
+
+                // Enviar metadata de evidencia a la API
+                const response = await fetch(`${apiBase}/api/evidencias`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...authHeaders()
+                    },
+                    body: JSON.stringify({
+                        mantenimiento_id: maintenanceId,
+                        archivo_nombre: file.name,
+                        archivo_ruta: `evidencias/${maintenanceId}/${Date.now()}_${file.name}`,
+                        tipo: file.type.includes('image') ? 'Foto' : (file.type.includes('pdf') ? 'Documento' : 'Documento'),
+                        descripcion: `Evidencia: ${file.name}`
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    uploadedEvidencias.push(data.data);
+                }
+            } catch (error) {
+                console.error('Error subiendo evidencia:', error);
+            }
+        }
+
+        return uploadedEvidencias;
+    };
+
     if (maintenanceForm) {
         maintenanceForm.addEventListener('submit', async event => {
             event.preventDefault();
@@ -279,8 +359,17 @@ document.addEventListener('DOMContentLoaded', async function () {
                     return;
                 }
 
-                setMessage('Mantenimiento registrado correctamente.', 'success');
+                // Subir evidencias si las hay
+                if (selectedEvidencias.length > 0) {
+                    setMessage('Mantenimiento registrado. Subiendo evidencias...', 'info');
+                    const maintenanceId = data.data.id || data.data[0]?.id;
+                    await uploadEvidencias(maintenanceId);
+                }
+
+                setMessage('Mantenimiento y evidencias registrados correctamente.', 'success');
                 maintenanceForm.reset();
+                selectedEvidencias = [];
+                renderEvidenciasList();
                 await fetchAssignedOrders();
                 await fetchMaintenanceHistory();
             } catch (error) {

@@ -30,6 +30,7 @@
                         <button type="button" class="admin-tab" data-section="ordenes">Órdenes</button>
                         <button type="button" class="admin-tab" data-section="cotizaciones">Cotizaciones</button>
                         <button type="button" class="admin-tab" data-section="repuestos">Repuestos</button>
+                        <button type="button" class="admin-tab" data-section="evidencias">Evidencias</button>
                     </nav>
                 </div>
                 <div class="admin-main">
@@ -301,6 +302,50 @@
                             <div class="card-panel">
                                 <h3>Nuevo repuesto</h3>
                                 <button type="button" class="btn-secondary open-drawer-btn" data-form="repuesto">Abrir formulario</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="admin-evidencias" class="admin-section hidden">
+                        <h2>Gestión de Evidencias</h2>
+                        <div class="section-grid">
+                            <div class="card-panel">
+                                <p>Evidencias fotográficas y documentales de mantenimientos realizados.</p>
+                                <div id="evidencias-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Mantenimiento</th>
+                                                <th>Nombre archivo</th>
+                                                <th>Tipo</th>
+                                                <th>Descripción</th>
+                                                <th>Fecha</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="evidencias-table-body">
+                                            <tr><td colspan="7">Cargando evidencias...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-panel">
+                                <h3>Filtrar evidencias</h3>
+                                <div class="input-group">
+                                    <label for="evidencias-filter-tecnico">Técnico</label>
+                                    <select id="evidencias-filter-tecnico">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="evidencias-filter-tipo">Tipo</label>
+                                    <select id="evidencias-filter-tipo">
+                                        <option value="">Todos</option>
+                                        <option value="Foto">Foto</option>
+                                        <option value="Documento">Documento</option>
+                                        <option value="Video">Video</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>

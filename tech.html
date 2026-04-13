@@ -131,6 +131,13 @@
                                 <textarea id="maintenance-observations" rows="3" placeholder="Observaciones adicionales"></textarea>
                             </div>
 
+                            <div class="input-group">
+                                <label for="maintenance-evidencias">Cargar evidencias (fotos/documentos)</label>
+                                <input id="maintenance-evidencias" type="file" multiple accept="image/*,.pdf,.doc,.docx,.txt" />
+                                <small>Puedes seleccionar múltiples archivos (imágenes, PDF, documentos)</small>
+                                <div id="evidencias-list" class="evidencias-list"></div>
+                            </div>
+
                             <button type="submit" class="btn-primary">Registrar mantenimiento</button>
                             <p id="tech-message" class="form-message"></p>
                         </form>

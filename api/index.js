@@ -14,6 +14,7 @@ const routeHandlers = {
   '/api/ordenes': require('./ordenes.js'),
   '/api/cotizaciones': require('./cotizaciones.js'),
   '/api/repuestos': require('../repuestos.js'),
+  '/api/evidencias': require('../evidencias.js'),
   '/api/auth/login': require('./login.js'),
   '/api/auth/register': require('./register.js'),
   '/api/auth/change-password': require('./change-password.js'),

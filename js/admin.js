@@ -45,7 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
         tecnicosTableBody: document.getElementById('tecnicos-table-body'),
         ordenesTableBody: document.getElementById('ordenes-table-body'),
         cotizacionesTableBody: document.getElementById('cotizaciones-table-body'),
-        repuestosTableBody: document.getElementById('repuestos-table-body')
+        repuestosTableBody: document.getElementById('repuestos-table-body'),
+        evidenciasTableBody: document.getElementById('evidencias-table-body')
     };
 
     const options = {
@@ -690,6 +691,77 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error cargando repuestos:', error);
             elements.repuestosTableBody.innerHTML = '<tr><td colspan="8">Error al cargar repuestos.</td></tr>';
+        }
+    }
+
+    async function fetchEvidencias() {
+        if (!elements.evidenciasTableBody) return;
+        elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">Cargando evidencias...</td></tr>';
+
+        try {
+            // Fetch mantenimientos first to get all evidence
+            const response = await fetch(`${apiBase}/api/mantenimientos`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">No se pudieron cargar las evidencias.</td></tr>';
+                return;
+            }
+            
+            const mantenimientos = data.mantenimientos || [];
+            let allEvidencias = [];
+            
+            // Fetch evidence for each maintenance
+            for (const mant of mantenimientos) {
+                try {
+                    const evidResponse = await fetch(`${apiBase}/api/evidencias/mantenimiento/${mant.id}`, {
+                        headers: authHeaders()
+                    });
+                    if (evidResponse.ok) {
+                        const evidData = await evidResponse.json();
+                        if (evidData.success && evidData.data) {
+                            allEvidencias = allEvidencias.concat(evidData.data.map(e => ({ ...e, mantenimiento_id: mant.id })));
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Could not fetch evidences for mantenimiento', mant.id);
+                }
+            }
+            
+            if (allEvidencias.length === 0) {
+                elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">No hay evidencias registradas.</td></tr>';
+                return;
+            }
+            
+            elements.evidenciasTableBody.innerHTML = '';
+            allEvidencias.forEach(evidencia => {
+                const row = document.createElement('tr');
+                const tipoClass = `badge-${evidencia.tipo.toLowerCase()}`;
+                const fecha = new Date(evidencia.created_at).toLocaleDateString('es-CO');
+                row.innerHTML = `
+                    <td>${evidencia.id}</td>
+                    <td>${evidencia.mantenimiento_id}</td>
+                    <td>${evidencia.archivo_nombre || 'N/A'}</td>
+                    <td><span class="badge ${tipoClass}">${evidencia.tipo}</span></td>
+                    <td>${evidencia.descripcion || 'N/A'}</td>
+                    <td>${fecha}</td>
+                    <td class="table-actions">
+                        <div class="action-menu">
+                            <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${evidencia.id}">⋮</button>
+                            <div class="action-menu-dropdown hidden" role="menu">
+                                <button type="button" class="action-menu-item action-menu-view" data-id="${evidencia.id}" role="menuitem">Ver</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${evidencia.id}" role="menuitem">Eliminar</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                elements.evidenciasTableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error cargando evidencias:', error);
+            elements.evidenciasTableBody.innerHTML = '<tr><td colspan="7">Error al cargar evidencias.</td></tr>';
         }
     }
 
@@ -1456,6 +1528,7 @@ document.addEventListener('DOMContentLoaded', function () {
     fetchClientes();
     fetchEquipos();
     fetchTecnicos();
+    fetchEvidencias();
     bindForms();
     bindFormDrawerButtons();
     bindActionMenuEvents();
