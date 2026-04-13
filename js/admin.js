@@ -19,15 +19,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const tokenRole = authToken ? (parseJwt(authToken)?.rol || parseJwt(authToken)?.role) : null;
-    const userRole = storedRole || tokenRole;
+    const userRole = tokenRole || storedRole;
 
     console.log('Auth token:', authToken ? authToken.substring(0, 20) + '...' : 'missing');
     console.log('Stored role:', storedRole);
     console.log('Token role:', tokenRole);
     console.log('User role:', userRole);
 
-    if (!authToken || userRole !== 'Administrador') {
-        console.log('Redirecting to login: no token or wrong role');
+    if (!authToken || !tokenRole || userRole !== 'Administrador') {
+        console.log('Redirecting to login: invalid or missing token, or wrong role');
         localStorage.removeItem('coolcare_token');
         localStorage.removeItem('coolcare_role');
         window.location.href = 'login.html';

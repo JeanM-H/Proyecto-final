@@ -17,9 +17,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const tokenRole = authToken ? (parseJwt(authToken)?.rol || parseJwt(authToken)?.role) : null;
-    const userRole = storedRole || tokenRole;
+    const userRole = tokenRole || storedRole;
 
-    if (!authToken || userRole !== 'Cliente') {
+    if (!authToken || !tokenRole || userRole !== 'Cliente') {
         localStorage.removeItem('coolcare_token');
         localStorage.removeItem('coolcare_role');
         window.location.href = 'login.html';

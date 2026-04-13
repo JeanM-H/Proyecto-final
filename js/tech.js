@@ -17,9 +17,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     const tokenRole = token ? (parseJwt(token)?.rol || parseJwt(token)?.role) : null;
-    const role = storedRole || tokenRole;
+    const role = tokenRole || storedRole;
 
-    if (!token || role !== 'Técnico') {
+    if (!token || !tokenRole || role !== 'Técnico') {
+        localStorage.removeItem('coolcare_token');
+        localStorage.removeItem('coolcare_role');
         window.location.href = 'login.html';
         return;
     }
