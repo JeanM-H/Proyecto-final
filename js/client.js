@@ -334,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function () {
         drawer.classList.add('open');
         drawerBackdrop.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function bindFormDrawerButtons() {
