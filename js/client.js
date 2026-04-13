@@ -482,41 +482,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindActionMenuEvents() {
-        console.log('bindActionMenuEvents: agregando listener global al document.body');
-
-        // Usar delegación en el body - necesita ser global porque la tabla se recarga dinámicamente
         document.body.addEventListener('click', event => {
-            // Solo procesar si está dentro de la tabla de equipos
-            const equiposBtn = event.target.closest('.action-menu-trigger, .action-menu-edit, .action-menu-delete');
-            if (!equiposBtn) return;
-            
-            // Verificar que esté dentro de la tabla de equipos
-            if (!event.target.closest('#equipos-table-body')) return;
-
-            console.log('*** CLICK en botón de equipos ***', equiposBtn.className);
-            
-            const trigger = event.target.closest('.action-menu-trigger');
-            if (trigger) {
-                console.log('✓ Trigger encontrado');
-                event.stopPropagation();
-                toggleActionMenu(trigger);
-                return;
-            }
-
-            const editButton = event.target.closest('.action-menu-edit');
-            if (editButton) {
-                console.log('✓ Editar encontrado, ID:', editButton.dataset.id);
-                event.stopPropagation();
-                handleEditEquipo({ target: editButton });
-        // Usar delegación en el body - necesita ser global porque la tabla se recarga dinámicamente
-        document.body.addEventListener('click', event => {
-            // Solo procesar si está dentro de la tabla de equipos
-            const equiposBtn = event.target.closest('.action-menu-trigger, .action-menu-edit, .action-menu-delete');
-            if (!equiposBtn) return;
-            
-            // Verificar que esté dentro de la tabla de equipos
-            if (!event.target.closest('#equipos-table-body')) return;
-            
             const trigger = event.target.closest('.action-menu-trigger');
             if (trigger) {
                 event.stopPropagation();
@@ -533,7 +499,32 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const deleteButton = event.target.closest('.action-menu-delete');
-            if (deleteButton) {{
+            if (deleteButton) {
+                event.stopPropagation();
+                handleDeleteEquipo({ target: deleteButton });
+                closeActionMenus();
+                return;
+            }
+        });
+    }
+
+    const editarEquipoForm = document.getElementById('editar-equipo-form');
+    if (editarEquipoForm) {
+        editarEquipoForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            const equipoId = parseInt(editarEquipoForm.dataset.equipoId);
+
+            const payload = {
+                marca: document.getElementById('editar-equipo-marca').value.trim(),
+                modelo: document.getElementById('editar-equipo-modelo').value.trim(),
+                serial: document.getElementById('editar-equipo-serial').value.trim(),
+                tipo: document.getElementById('editar-equipo-tipo').value.trim(),
+                ubicacion: document.getElementById('editar-equipo-ubicacion').value.trim(),
+                estado: document.getElementById('editar-equipo-estado').value
+            };
+
+            try {
+                const response = await fetch(`${apiBase}/api/equipos/${equipoId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', ...authHeaders() },
                     body: JSON.stringify(payload)
@@ -565,7 +556,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const sectionId = `admin-${tab.dataset.section}`;
         showClientSection(sectionId);
 
-        // Load data based on section
         if (tab.dataset.section === 'ordenes') {
             fetchOrdenes();
         } else if (tab.dataset.section === 'cotizaciones') {
@@ -576,16 +566,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Initialize
-    console.log('===== INICIALIZANDO CLIENT.JS =====');
-    console.log('elements.equiposTableBody:', elements.equiposTableBody);
     fetchClientInfo();
     fetchMetrics();
     fetchOrdenes();
     bindFormDrawerButtons();
-    console.log('Inicial - llamando a bindActionMenuEvents()...');
     bindActionMenuEvents();
     showClientSection('admin-ordenes');
-});fetchClientInfo();
-    fetchMetrics();
-    fetchOrdenes();
-    bindFormDrawerButtons(
+});
