@@ -324,8 +324,12 @@ document.addEventListener('DOMContentLoaded', function () {
             form.classList.remove('active');
             form.classList.add('hidden');
         });
-        const activeForm = document.getElementById(`drawer-form-${formType}`);
-        if (!activeForm) return;
+        const normalizedFormType = formType || 'solicitar-servicio';
+        const activeForm = document.getElementById(`drawer-form-${normalizedFormType}`);
+        if (!activeForm) {
+            console.warn(`No se encontró el formulario para: ${normalizedFormType}`);
+            return;
+        }
         activeForm.classList.add('active');
         activeForm.classList.remove('hidden');
 
@@ -340,7 +344,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.open-drawer-btn').forEach(button => {
             button.addEventListener('click', event => {
                 event.preventDefault();
-                openDrawer(button.dataset.form);
+                const formType = button.dataset.form || 'solicitar-servicio';
+                openDrawer(formType);
             });
         });
 
