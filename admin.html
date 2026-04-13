@@ -306,10 +306,20 @@
                         </div>
                     </div>
                     <div id="admin-evidencias" class="admin-section hidden">
-                        <h2>Gestión de Evidencias</h2>
+                        <div class="admin-section-header">
+                            <div>
+                                <h2>Gestión de Evidencias</h2>
+                                <p class="section-description">Evidencias fotográficas y documentales de mantenimientos realizados. Filtra y administra todos los archivos asociados a cada mantenimiento.</p>
+                            </div>
+                        </div>
                         <div class="section-grid">
-                            <div class="card-panel">
-                                <p>Evidencias fotográficas y documentales de mantenimientos realizados.</p>
+                            <div class="card-panel evidence-panel">
+                                <div class="table-toolbar">
+                                    <div>
+                                        <p class="section-label">Evidencias</p>
+                                        <h3 class="table-title">Archivos asociados a mantenimientos</h3>
+                                    </div>
+                                </div>
                                 <div id="evidencias-table-container">
                                     <table class="data-table">
                                         <thead>
@@ -329,7 +339,7 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="card-panel">
+                            <div class="card-panel filter-card">
                                 <h3>Filtrar evidencias</h3>
                                 <div class="input-group">
                                     <label for="evidencias-filter-tecnico">Técnico</label>
