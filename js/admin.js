@@ -380,10 +380,9 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (confirm('¿Estás seguro de que deseas eliminar esta cotización? Esta acción no se puede deshacer.')) {
             try {
-                const response = await fetch(`${apiBase}/api/cotizaciones`, {
+                const response = await fetch(`${apiBase}/api/cotizaciones/${cotizacionId}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                    body: JSON.stringify({ id: cotizacionId })
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() }
                 });
                 if (handleUnauthorized(response)) return;
                 const data = await response.json();
@@ -949,7 +948,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const cotizacionId = parseInt(editCotizacionForm.dataset.cotizacionId);
 
                 const payload = {
-                    id: cotizacionId,
                     cliente_id: Number(document.getElementById('edit-cotizacion-cliente').value),
                     descripcion: document.getElementById('edit-cotizacion-descripcion').value.trim(),
                     monto_estimado: Number(document.getElementById('edit-cotizacion-monto').value),
@@ -957,7 +955,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
 
                 try {
-                    const response = await fetch(`${apiBase}/api/cotizaciones`, {
+                    const response = await fetch(`${apiBase}/api/cotizaciones/${cotizacionId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', ...authHeaders() },
                         body: JSON.stringify(payload)
