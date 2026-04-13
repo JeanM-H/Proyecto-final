@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('=== CLIENT.JS CARGADO ===');
-    
     const apiBase = window.location.origin;
     const authToken = localStorage.getItem('coolcare_token');
     const storedRole = localStorage.getItem('coolcare_role');
@@ -330,39 +328,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openDrawer(formType) {
-        console.log('openDrawer() llamado con formType:', formType);
-        console.log('drawer:', drawer);
-        if (!drawer) {
-            console.error('ERROR: drawer no existe!');
-            return;
-        }
-        
+        if (!drawer) return;
         drawerForms.forEach(form => {
             form.classList.remove('active');
             form.classList.add('hidden');
         });
-        
         const normalizedFormType = formType || 'solicitar-servicio';
         const activeForm = document.getElementById(`drawer-form-${normalizedFormType}`);
-        console.log('Buscando formulario:', `drawer-form-${normalizedFormType}`);
-        console.log('activeForm:', activeForm);
-        
         if (!activeForm) {
             console.warn(`No se encontró el formulario para: ${normalizedFormType}`);
             return;
         }
-        
         activeForm.classList.add('active');
         activeForm.classList.remove('hidden');
-        
+
         drawerTitle.textContent = activeForm.dataset.title || 'Formulario';
 
-        console.log('Agregando clase open a drawer y drawerBackdrop');
         drawer.classList.add('open');
         drawerBackdrop.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
-        console.log('drawer.classList:', drawer.classList);
-        console.log('drawerBackdrop.classList:', drawerBackdrop.classList);
     }
 
     function bindFormDrawerButtons() {
@@ -380,23 +364,11 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('✓ BOTÓN DE DRAWER ENCONTRADO!', button.dataset.form);
             event.preventDefault();
             event.stopPropagation();
-            
-            const formType = button.dataset.form || 'solicitar-servicio';
-            console.log('Abriendo drawer con formType:', formType);
-            openDrawer(formType);
-        });
-
-        if (closeDrawerButton) {
-            closeDrawerButton.addEventListener('click', closeDrawer);
-        }
-
-        if (drawerBackdrop) {
-            drawerBackdrop.addEventListener('click', closeDrawer);
-        }
-
-        document.addEventListener('keydown', event => {
-            if (event.key === 'Escape') {
-                closeDrawer();
+        document.body.addEventListener('click', event => {
+            const button = event.target.closest('.open-drawer-btn');
+            if (!button) return;
+            event.preventDefault();
+            const formType = button.dataset.form || 'solicitar-servicio'
             }
         });
     }
@@ -536,39 +508,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('✓ Editar encontrado, ID:', editButton.dataset.id);
                 event.stopPropagation();
                 handleEditEquipo({ target: editButton });
+        // Usar delegación en el body - necesita ser global porque la tabla se recarga dinámicamente
+        document.body.addEventListener('click', event => {
+            // Solo procesar si está dentro de la tabla de equipos
+            const equiposBtn = event.target.closest('.action-menu-trigger, .action-menu-edit, .action-menu-delete');
+            if (!equiposBtn) return;
+            
+            // Verificar que esté dentro de la tabla de equipos
+            if (!event.target.closest('#equipos-table-body')) return;
+            
+            const trigger = event.target.closest('.action-menu-trigger');
+            if (trigger) {
+                event.stopPropagation();
+                toggleActionMenu(trigger);
+                return;
+            }
+
+            const editButton = event.target.closest('.action-menu-edit');
+            if (editButton) {
+                event.stopPropagation();
+                handleEditEquipo({ target: editButton });
                 closeActionMenus();
                 return;
             }
 
             const deleteButton = event.target.closest('.action-menu-delete');
-            if (deleteButton) {
-                console.log('✓ Eliminar encontrado, ID:', deleteButton.dataset.id);
-                event.stopPropagation();
-                handleDeleteEquipo({ target: deleteButton });
-                closeActionMenus();
-                return;
-            }
-        });
-    }
-
-    // Formulario de edición de equipo
-    const editarEquipoForm = document.getElementById('editar-equipo-form');
-    if (editarEquipoForm) {
-        editarEquipoForm.addEventListener('submit', async event => {
-            event.preventDefault();
-            const equipoId = parseInt(editarEquipoForm.dataset.equipoId);
-
-            const payload = {
-                marca: document.getElementById('editar-equipo-marca').value.trim(),
-                modelo: document.getElementById('editar-equipo-modelo').value.trim(),
-                serial: document.getElementById('editar-equipo-serial').value.trim(),
-                tipo: document.getElementById('editar-equipo-tipo').value.trim(),
-                ubicacion: document.getElementById('editar-equipo-ubicacion').value.trim(),
-                estado: document.getElementById('editar-equipo-estado').value
-            };
-
-            try {
-                const response = await fetch(`${apiBase}/api/equipos/${equipoId}`, {
+            if (deleteButton) {{
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', ...authHeaders() },
                     body: JSON.stringify(payload)
@@ -620,4 +585,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Inicial - llamando a bindActionMenuEvents()...');
     bindActionMenuEvents();
     showClientSection('admin-ordenes');
-});
+});fetchClientInfo();
+    fetchMetrics();
+    fetchOrdenes();
+    bindFormDrawerButtons(

@@ -1064,6 +1064,16 @@ main#content {
     z-index: 45;
 }
 
+.drawer-backdrop.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.form-drawer.open {
+    transform: translateX(0);
+    box-shadow: -28px 0 90px rgba(15, 23, 42, 0.27);
+}
+
 .drawer-header h3 {
     margin: 0;
     font-size: 1.75rem;
