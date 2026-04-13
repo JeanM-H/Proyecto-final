@@ -330,25 +330,39 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openDrawer(formType) {
-        if (!drawer) return;
+        console.log('openDrawer() llamado con formType:', formType);
+        console.log('drawer:', drawer);
+        if (!drawer) {
+            console.error('ERROR: drawer no existe!');
+            return;
+        }
+        
         drawerForms.forEach(form => {
             form.classList.remove('active');
             form.classList.add('hidden');
         });
+        
         const normalizedFormType = formType || 'solicitar-servicio';
         const activeForm = document.getElementById(`drawer-form-${normalizedFormType}`);
+        console.log('Buscando formulario:', `drawer-form-${normalizedFormType}`);
+        console.log('activeForm:', activeForm);
+        
         if (!activeForm) {
             console.warn(`No se encontró el formulario para: ${normalizedFormType}`);
             return;
         }
+        
         activeForm.classList.add('active');
         activeForm.classList.remove('hidden');
-
+        
         drawerTitle.textContent = activeForm.dataset.title || 'Formulario';
 
+        console.log('Agregando clase open a drawer y drawerBackdrop');
         drawer.classList.add('open');
         drawerBackdrop.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
+        console.log('drawer.classList:', drawer.classList);
+        console.log('drawerBackdrop.classList:', drawerBackdrop.classList);
     }
 
     function bindFormDrawerButtons() {
