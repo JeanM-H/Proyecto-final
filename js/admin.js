@@ -285,10 +285,9 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (confirm('¿Estás seguro de que deseas eliminar este técnico? Esta acción no se puede deshacer.')) {
             try {
-                const response = await fetch(`${apiBase}/api/tecnicos`, {
+                const response = await fetch(`${apiBase}/api/tecnicos/${tecnicoId}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                    body: JSON.stringify({ id: tecnicoId })
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() }
                 });
                 if (handleUnauthorized(response)) return;
                 const data = await response.json();
