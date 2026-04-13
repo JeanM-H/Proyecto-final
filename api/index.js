@@ -7,13 +7,17 @@ const routeHandlers = {
   '/api/clientes': require('./clientes.js'),
   '/api/tecnicos': require('./tecnicos.js'),
   '/api/change-password': require('./change-password.js'),
+  '/api/forgot-password': require('./forgot-password.js'),
+  '/api/reset-password': require('./reset-password.js'),
   '/api/dashboard-metrics': require('./dashboard-metrics.js'),
   '/api/equipos': require('./equipos.js'),
   '/api/ordenes': require('./ordenes.js'),
   '/api/cotizaciones': require('./cotizaciones.js'),
   '/api/auth/login': require('./login.js'),
   '/api/auth/register': require('./register.js'),
-  '/api/auth/change-password': require('./change-password.js')
+  '/api/auth/change-password': require('./change-password.js'),
+  '/api/auth/forgot-password': require('./forgot-password.js'),
+  '/api/auth/reset-password': require('./reset-password.js')
 };
 
 module.exports = async (req, res) => {
