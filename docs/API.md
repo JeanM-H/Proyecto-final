@@ -29,6 +29,9 @@ El sistema sigue una arquitectura de **3 capas**:
 
 ## Modelo Entidad-Relación (ER)
 
+### Diagrama Visual
+Para ver el diagrama completo de entidades y relaciones, consulta el archivo [`ER.md`](ER.md) en esta misma carpeta.
+
 ### Entidades Principales
 
 #### Usuarios

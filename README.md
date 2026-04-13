@@ -3,9 +3,15 @@
 ## Descripción
 Aplicación web desarrollada para optimizar la gestión de operaciones en empresas del sector de climatización. Permite gestionar órdenes de mantenimiento, clientes, equipos, técnicos, cotizaciones y captura de evidencias.
 
----
+## 📚 Documentación
 
-## Características
+### Documentación Completa
+- **[📋 API Endpoints](docs/API.md)**: Documentación completa de todos los endpoints REST
+- **[📊 Diagrama ER](docs/ER.md)**: Modelo entidad-relación visual completo
+- **[🚀 Guía de Despliegue](GUIA_HOSTING.md)**: Instrucciones para hosting en Vercel
+- **[⚙️ Setup Supabase](SUPABASE_SETUP.md)**: Configuración de base de datos
+
+---
 
 ✅ **Autenticación Multi-Rol**
 - Administrador: Control total del sistema
