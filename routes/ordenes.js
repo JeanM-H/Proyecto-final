@@ -138,6 +138,8 @@ router.put('/:id', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'No hay campos para actualizar' });
     }
 
+    updates.updated_by = req.user.id;
+
     const { data, error } = await supabase
       .from('ordenes_mantenimiento')
       .update(updates)
@@ -187,7 +189,7 @@ router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => 
 
     const { data, error } = await supabase
       .from('ordenes_mantenimiento')
-      .insert({ cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada, estado: 'Pendiente' })
+      .insert({ cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada, estado: 'Pendiente', created_by: req.user.id })
       .single();
 
     if (error) {

@@ -74,7 +74,8 @@ router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => 
       email,
       password: hashedPassword,
       rol: 'Cliente',
-      estado: true
+      estado: true,
+      created_by: req.user.id
     };
     console.log('[POST /api/clientes] Crear usuario payload:', usuarioPayload);
     const { data: usuario, error: insertUserError } = await supabase

@@ -60,7 +60,8 @@ router.post('/', verifyToken, async (req, res) => {
         archivo_nombre,
         archivo_ruta: archivo_ruta || null,
         tipo,
-        descripcion: descripcion || null
+        descripcion: descripcion || null,
+        created_by: req.user.id
       })
       .select()
       .single();

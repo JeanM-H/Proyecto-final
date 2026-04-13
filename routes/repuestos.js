@@ -44,7 +44,7 @@ router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => 
 
     const { data, error } = await supabase
       .from('repuestos')
-      .insert({ nombre, descripcion, precio, stock })
+      .insert({ nombre, descripcion, precio, stock, created_by: req.user.id })
       .select()
       .single();
 
@@ -66,9 +66,21 @@ router.put('/:id', verifyToken, requireRole('Administrador'), async (req, res) =
     const repuestoId = Number(req.params.id);
     const { nombre, descripcion, precio, stock } = req.body;
 
+    const updates = {};
+    if (nombre !== undefined) updates.nombre = nombre;
+    if (descripcion !== undefined) updates.descripcion = descripcion;
+    if (precio !== undefined) updates.precio = precio;
+    if (stock !== undefined) updates.stock = stock;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: 'No hay campos para actualizar' });
+    }
+
+    updates.updated_by = req.user.id;
+
     const { data, error } = await supabase
       .from('repuestos')
-      .update({ nombre, descripcion, precio, stock })
+      .update(updates)
       .eq('id', repuestoId)
       .select()
       .single();

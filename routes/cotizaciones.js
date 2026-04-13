@@ -68,7 +68,7 @@ router.post('/', verifyToken, requireRole('Administrador'), async (req, res) => 
 
     const { data, error } = await supabase
       .from('cotizaciones')
-      .insert({ cliente_id, descripcion, monto_estimado, estado: 'Pendiente', fecha_solicitud: new Date().toISOString() })
+      .insert({ cliente_id, descripcion, monto_estimado, estado: 'Pendiente', fecha_solicitud: new Date().toISOString(), created_by: req.user.id })
       .single();
 
     if (error) {
@@ -97,6 +97,8 @@ router.put('/:id', verifyToken, requireRole('Administrador'), async (req, res) =
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ success: false, message: 'No hay campos para actualizar' });
     }
+
+    updates.updated_by = req.user.id;
 
     const { data, error } = await supabase
       .from('cotizaciones')

@@ -154,7 +154,8 @@ router.post('/', verifyToken, async (req, res) => {
       repuestos_utilizados: repuestos_utilizados || null,
       fecha_inicio: fecha_inicio || new Date().toISOString(),
       fecha_fin: fecha_fin || null,
-      observaciones: observaciones || null
+      observaciones: observaciones || null,
+      created_by: req.user.id
     };
 
     const { data, error } = await supabase
@@ -219,9 +220,23 @@ router.put('/:id', verifyToken, async (req, res) => {
       }
     }
 
+    const updates = {};
+    if (notas !== undefined) updates.notas = notas;
+    if (tiempo_dedicado !== undefined) updates.tiempo_dedicado = tiempo_dedicado;
+    if (repuestos_utilizados !== undefined) updates.repuestos_utilizados = repuestos_utilizados;
+    if (fecha_inicio !== undefined) updates.fecha_inicio = fecha_inicio;
+    if (fecha_fin !== undefined) updates.fecha_fin = fecha_fin;
+    if (observaciones !== undefined) updates.observaciones = observaciones;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: 'No hay campos para actualizar' });
+    }
+
+    updates.updated_by = req.user.id;
+
     const { data, error } = await supabase
       .from('mantenimientos')
-      .update({ notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones })
+      .update(updates)
       .eq('id', mantenimientoId)
       .select()
       .single();
