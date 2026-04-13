@@ -61,7 +61,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data && data.success) {
                 if (data.token) {
                     localStorage.setItem('coolcare_token', data.token);
-                    localStorage.setItem('coolcare_role', role);
+                    localStorage.setItem('coolcare_role', data.user?.rol || role);
+                } else {
+                    console.warn('Login exitoso pero no se recibió token.');
                 }
 
                 if (data.needsPasswordChange) {
@@ -72,8 +74,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.href = targetPage;
                     }, 800);
                 } else {
-                    const targetPage = role === 'Administrador' ? 'admin.html' : role === 'Técnico' ? 'tech.html' : 'client.html';
-                    messageBox.textContent = `¡Bienvenido, ${role}! Redirigiendo...`;
+                    const userRole = data.user?.rol || role;
+                    const targetPage = userRole === 'Administrador' ? 'admin.html' : userRole === 'Técnico' ? 'tech.html' : 'client.html';
+                    localStorage.setItem('coolcare_role', userRole);
+                    messageBox.textContent = `¡Bienvenido, ${userRole}! Redirigiendo...`;
                     messageBox.style.color = '#16a34a';
                     setTimeout(() => {
                         window.location.href = targetPage;
@@ -81,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 localStorage.removeItem('coolcare_token');
+                localStorage.removeItem('coolcare_role');
                 const message = (data && data.message) ? data.message : 'Credenciales inválidas.';
                 messageBox.textContent = message;
                 messageBox.style.color = '#dc2626';

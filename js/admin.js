@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     const apiBase = window.location.origin;
     const authToken = localStorage.getItem('coolcare_token');
+    const userRole = localStorage.getItem('coolcare_role');
 
-    if (!authToken) {
+    if (!authToken || userRole !== 'Administrador') {
+        localStorage.removeItem('coolcare_token');
+        localStorage.removeItem('coolcare_role');
         window.location.href = 'login.html';
         return;
     }
