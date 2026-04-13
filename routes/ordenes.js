@@ -31,7 +31,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('ordenes_mantenimiento')
-      .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, updated_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
+      .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
       .order('id', { ascending: true });
 
     if (error) {
@@ -56,7 +56,7 @@ router.get('/assigned', verifyToken, async (req, res) => {
 
     const { data, error } = await supabase
       .from('ordenes_mantenimiento')
-      .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, updated_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
+      .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
       .eq('tecnico_id', tecnico.id)
       .order('fecha_programada', { ascending: true });
 
@@ -78,7 +78,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 
     const { data, error } = await supabase
       .from('ordenes_mantenimiento')
-      .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, updated_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
+      .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
       .eq('id', ordenId)
       .maybeSingle();
 

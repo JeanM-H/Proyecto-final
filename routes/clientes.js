@@ -417,7 +417,7 @@ router.get('/me/ordenes', verifyToken, async (req, res) => {
 
     const { data, error } = await supabase
       .from('ordenes_mantenimiento')
-      .select('id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, updated_at, equipo:equipos_climatizacion(modelo,marca,serial,tipo), tecnico:tecnicos(especialidad)')
+      .select('id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, equipo:equipos_climatizacion(modelo,marca,serial,tipo), tecnico:tecnicos(especialidad)')
       .eq('cliente_id', cliente.id)
       .order('created_at', { ascending: false });
 
