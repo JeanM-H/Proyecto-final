@@ -299,6 +299,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             options.equipos = equipos;
             populateEquiposSelect();
+            // Rebind después de renderizar
+            setTimeout(() => bindActionMenuEvents(), 100);
         } catch (error) {
             console.error('Error cargando equipos:', error);
             elements.equiposTableBody.innerHTML = '<tr><td colspan="8">Error al cargar equipos.</td></tr>';
@@ -486,38 +488,44 @@ document.addEventListener('DOMContentLoaded', function () {
     function bindActionMenuEvents() {
         console.log('bindActionMenuEvents: usando event delegation en document.body');
 
-        // Usar delegación de eventos en el body para capturar clics en los botones de acción
-        document.body.addEventListener('click', event => {
-            // Si el clic no es dentro de una tabla de equipos, ignora
-            const table = event.target.closest('#equipos-table-body');
-            if (!table && !event.target.closest('.action-menu')) return;
+        // Test: Verificar si la tabla existe y tiene contenido
+        const tbody = document.getElementById('equipos-table-body');
+        console.log('tbody encontrado:', tbody);
+        if (tbody) {
+            console.log('tbody innerHTML:', tbody.innerHTML);
+            console.log('Botones encontrados:', tbody.querySelectorAll('.action-menu-trigger').length);
+        }
 
-            console.log('Click detectado en tabla/menú de equipos', event.target);
-            
-            const trigger = event.target.closest('.action-menu-trigger');
-            if (trigger) {
-                console.log('Trigger encontrado');
+        // Capturar TODOS los clics en el tbody para debuguear
+        if (tbody) {
+            tbody.addEventListener('click', event => {
+                console.log('*** CLICK EN TABLA ***', event.target.tagName, event.target.className);
                 event.stopPropagation();
-                toggleActionMenu(trigger);
-                return;
-            }
+                
+                const trigger = event.target.closest('.action-menu-trigger');
+                if (trigger) {
+                    console.log('✓ Trigger encontrado');
+                    toggleActionMenu(trigger);
+                    return;
+                }
 
-            const editButton = event.target.closest('.action-menu-edit');
-            if (editButton) {
-                console.log('Editar botón encontrado, ID:', editButton.dataset.id);
-                handleEditEquipo({ target: editButton });
-                closeActionMenus();
-                return;
-            }
+                const editButton = event.target.closest('.action-menu-edit');
+                if (editButton) {
+                    console.log('✓ Editar encontrado');
+                    handleEditEquipo({ target: editButton });
+                    closeActionMenus();
+                    return;
+                }
 
-            const deleteButton = event.target.closest('.action-menu-delete');
-            if (deleteButton) {
-                console.log('Eliminar botón encontrado, ID:', deleteButton.dataset.id);
-                handleDeleteEquipo({ target: deleteButton });
-                closeActionMenus();
-                return;
-            }
-        }, { capture: false });
+                const deleteButton = event.target.closest('.action-menu-delete');
+                if (deleteButton) {
+                    console.log('✓ Eliminar encontrado');
+                    handleDeleteEquipo({ target: deleteButton });
+                    closeActionMenus();
+                    return;
+                }
+            }, true); // usar captura
+        }
     }
 
     // Formulario de edición de equipo
@@ -580,13 +588,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Initialize
-    console.log('Inicializando...');
+    console.log('===== INICIALIZANDO CLIENT.JS =====');
+    console.log('elements.equiposTableBody:', elements.equiposTableBody);
     fetchClientInfo();
     fetchMetrics();
     fetchOrdenes();
     bindFormDrawerButtons();
-    console.log('Llamando a bindActionMenuEvents()...');
+    console.log('Inicial - llamando a bindActionMenuEvents()...');
     bindActionMenuEvents();
-    console.log('bindActionMenuEvents() llamado');
     showClientSection('admin-ordenes');
 });
