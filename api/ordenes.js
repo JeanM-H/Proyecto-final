@@ -19,11 +19,40 @@ function parseJsonBody(req) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const pathname = url.pathname;
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const ordenId = pathSegments.length >= 3 ? Number(pathSegments[2]) : null;
+
+  if (req.method === 'GET' && ordenId) {
+    try {
+      const { data, error } = await supabase
+        .from('ordenes_mantenimiento')
+        .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, cliente:clientes(empresa), equipo:equipos_climatizacion(modelo,marca), tecnico:tecnicos(especialidad)')
+        .eq('id', ordenId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error orden detalle:', error);
+        return res.status(500).json({ success: false, message: 'Error al obtener orden' });
+      }
+
+      if (!data) {
+        return res.status(404).json({ success: false, message: 'Orden no encontrada' });
+      }
+
+      return res.status(200).json({ success: true, orden: data });
+    } catch (error) {
+      console.error('Error orden detalle:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener orden' });
+    }
   }
 
   if (req.method === 'GET') {
@@ -42,6 +71,25 @@ module.exports = async (req, res) => {
     } catch (error) {
       console.error('Error ordenes:', error);
       return res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
+    }
+  }
+
+  if (req.method === 'DELETE' && ordenId) {
+    try {
+      const { error } = await supabase
+        .from('ordenes_mantenimiento')
+        .delete()
+        .eq('id', ordenId);
+
+      if (error) {
+        console.error('Error eliminando orden:', error);
+        return res.status(500).json({ success: false, message: 'Error al eliminar la orden' });
+      }
+
+      return res.status(200).json({ success: true, message: 'Orden eliminada correctamente' });
+    } catch (error) {
+      console.error('Error orden DELETE:', error);
+      return res.status(500).json({ success: false, message: 'Error al eliminar la orden' });
     }
   }
 

@@ -334,10 +334,9 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (confirm('¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer.')) {
             try {
-                const response = await fetch(`${apiBase}/api/ordenes`, {
+                const response = await fetch(`${apiBase}/api/ordenes/${ordenId}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-                    body: JSON.stringify({ id: ordenId })
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() }
                 });
                 if (handleUnauthorized(response)) return;
                 const data = await response.json();
