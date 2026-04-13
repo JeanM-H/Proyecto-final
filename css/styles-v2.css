@@ -526,12 +526,7 @@ main#content {
     height: 32px;
 }
 
-.metric-card-ordenes .metric-icon {
-    background: rgba(34, 197, 94, 0.15);
-    color: #4ade80;
-}
-
-.metric-card-cotizaciones .metric-icon {
+.metric-card-clientes .metric-icon {
     background: rgba(59, 130, 246, 0.15);
     color: #60a5fa;
 }
@@ -539,6 +534,21 @@ main#content {
 .metric-card-equipos .metric-icon {
     background: rgba(168, 85, 247, 0.15);
     color: #c084fc;
+}
+
+.metric-card-tecnicos .metric-icon {
+    background: rgba(236, 72, 153, 0.15);
+    color: #f472b6;
+}
+
+.metric-card-cotizaciones .metric-icon {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fb923c;
+}
+
+.metric-card-completadas .metric-icon {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
 }
 
 .metric-content {

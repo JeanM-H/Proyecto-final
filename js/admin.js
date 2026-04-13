@@ -550,13 +550,14 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.ordenesTableBody.innerHTML = '';
             ordenes.forEach(orden => {
                 const row = document.createElement('tr');
+                const estadoClass = `badge-${orden.estado.toLowerCase().replace(/\s+/g, '-')}`;
                 row.innerHTML = `
                     <td>${orden.id}</td>
                     <td>${orden.cliente?.empresa || 'N/A'}</td>
                     <td>${orden.equipo?.modelo || 'N/A'}</td>
                     <td>${orden.tecnico?.especialidad || 'N/A'}</td>
                     <td>${orden.tipo}</td>
-                    <td>${orden.estado}</td>
+                    <td><span class="badge ${estadoClass}">${orden.estado}</span></td>
                     <td>${orden.fecha_programada ? new Date(orden.fecha_programada).toLocaleDateString('es-CO') : 'No definida'}</td>
                     <td class="table-actions">
                         <div class="action-menu">
@@ -598,12 +599,13 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.cotizacionesTableBody.innerHTML = '';
             cotizaciones.forEach(cotizacion => {
                 const row = document.createElement('tr');
+                const estadoClass = `badge-${cotizacion.estado.toLowerCase().replace(/\s+/g, '-')}`;
                 row.innerHTML = `
                     <td>${cotizacion.id}</td>
                     <td>${cotizacion.cliente?.empresa || 'N/A'}</td>
                     <td>${cotizacion.descripcion}</td>
                     <td>${Number(cotizacion.monto_estimado).toFixed(2)}</td>
-                    <td>${cotizacion.estado}</td>
+                    <td><span class="badge ${estadoClass}">${cotizacion.estado}</span></td>
                     <td>${cotizacion.fecha_solicitud ? new Date(cotizacion.fecha_solicitud).toLocaleDateString('es-CO') : 'N/A'}</td>
                     <td class="table-actions">
                         <div class="action-menu">

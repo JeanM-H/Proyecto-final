@@ -95,6 +95,35 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     };
 
+    const updateMetrics = () => {
+        const metricOrdenes = document.getElementById('metric-tech-ordenes');
+        const metricCompletadas = document.getElementById('metric-tech-completadas');
+        const metricEquipos = document.getElementById('metric-tech-equipos');
+
+        // Órdenes pendientes
+        if (metricOrdenes) {
+            const pendingCount = assignedOrders.filter(o => o.estado !== 'Completado' && o.estado !== 'Cancelado').length;
+            metricOrdenes.textContent = pendingCount;
+        }
+
+        // Órdenes completadas
+        if (metricCompletadas) {
+            const completedCount = assignedOrders.filter(o => o.estado === 'Completado').length;
+            metricCompletadas.textContent = completedCount;
+        }
+
+        // Equipos mantenidos (contar únicos)
+        if (metricEquipos && maintenanceHistoryBody) {
+            const equiposUnicos = new Set();
+            const rows = maintenanceHistoryBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const equipoCell = row.cells[2];
+                if (equipoCell) equiposUnicos.add(equipoCell.textContent);
+            });
+            metricEquipos.textContent = equiposUnicos.size;
+        }
+    };
+
     const renderAssignedOrders = () => {
         if (!ordersTableBody) return;
 
@@ -106,18 +135,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         ordersTableBody.innerHTML = '';
         assignedOrders.forEach(order => {
             const row = document.createElement('tr');
+            const estadoClass = `badge-${order.estado.toLowerCase().replace(/\s+/g, '-')}`;
             row.innerHTML = `
                 <td>${order.id}</td>
                 <td>${order.cliente?.empresa || 'N/A'}</td>
-                <td>${order.equipo?.marca || 'N/A'}</td>
-                <td>${order.equipo?.modelo || 'N/A'}</td>
+                <td>${order.equipo?.marca || 'N/A'} ${order.equipo?.modelo || ''}</td>
                 <td>${order.tipo}</td>
-                <td>${order.estado}</td>
+                <td><span class="badge ${estadoClass}">${order.estado}</span></td>
                 <td>${order.fecha_programada ? new Date(order.fecha_programada).toLocaleString('es-CO') : 'No definida'}</td>
             `;
             row.addEventListener('click', () => selectOrder(order.id));
             ordersTableBody.appendChild(row);
         });
+        updateMetrics();
     };
 
     const renderOrderSelect = () => {
