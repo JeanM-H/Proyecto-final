@@ -21,6 +21,7 @@ app.use('/api/cotizaciones', require('./routes/cotizaciones'));
 app.use('/api/mantenimientos', require('./routes/mantenimientos'));
 app.use('/api/dashboard-metrics', require('./routes/dashboard-metrics'));
 app.use('/api/debug', require('./routes/debug')); // DEBUG ONLY
+app.use('/api/evidencias', require('./routes/evidencias'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {

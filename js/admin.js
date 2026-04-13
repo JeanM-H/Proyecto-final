@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return JSON.parse(jsonPayload);
         } catch (error) {
             console.error('Error parsing JWT:', error);
+            console.error('Token parts:', parts);
             return null;
         }
     }
@@ -20,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const tokenRole = authToken ? (parseJwt(authToken)?.rol || parseJwt(authToken)?.role) : null;
     const userRole = storedRole || tokenRole;
 
-    console.log('Auth token:', authToken ? 'present' : 'missing');
+    console.log('Auth token:', authToken ? authToken.substring(0, 20) + '...' : 'missing');
     console.log('Stored role:', storedRole);
     console.log('Token role:', tokenRole);
     console.log('User role:', userRole);
