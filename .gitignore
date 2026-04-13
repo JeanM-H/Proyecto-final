@@ -64,6 +64,7 @@ Thumbs.db
 # Database files (local development)
 *.sql
 !database/schema.sql
+!database/create_recovery_tokens.sql
 
 # Build outputs
 dist/
