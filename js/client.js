@@ -338,7 +338,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function bindFormDrawerButtons() {
         document.querySelectorAll('.open-drawer-btn').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', event => {
+                event.preventDefault();
                 openDrawer(button.dataset.form);
             });
         });
