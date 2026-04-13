@@ -45,6 +45,38 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+router.post('/', verifyToken, async (req, res) => {
+  try {
+    const { mantenimiento_id, archivo_nombre, archivo_ruta, tipo, descripcion } = req.body;
+
+    if (!mantenimiento_id || !archivo_nombre || !tipo) {
+      return res.status(400).json({ success: false, message: 'Mantenimiento ID, archivo nombre y tipo son requeridos' });
+    }
+
+    const { data, error } = await supabase
+      .from('evidencias')
+      .insert({
+        mantenimiento_id,
+        archivo_nombre,
+        archivo_ruta: archivo_ruta || null,
+        tipo,
+        descripcion: descripcion || null
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creando evidencia:', error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+
+    return res.status(201).json({ success: true, evidencia: data });
+  } catch (error) {
+    console.error('Error evidencias POST:', error);
+    return res.status(500).json({ success: false, message: 'Error al crear evidencia' });
+  }
+});
+
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;

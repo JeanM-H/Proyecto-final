@@ -15,6 +15,7 @@ const routeHandlers = {
   '/api/cotizaciones': require('./cotizaciones.js'),
   '/api/repuestos': require('../repuestos.js'),
   '/api/evidencias': require('../evidencias.js'),
+  '/api/mantenimientos': require('../routes/mantenimientos.js'),
   '/api/auth/login': require('./login.js'),
   '/api/auth/register': require('./register.js'),
   '/api/auth/change-password': require('./change-password.js'),
@@ -45,6 +46,27 @@ module.exports = async (req, res) => {
       version: '1.0.0',
       status: 'OK'
     });
+  }
+
+  // Manejo inline para rutas específicas
+  if (pathname === '/api/auth/logout' && req.method === 'POST') {
+    return res.status(200).json({ success: true, message: 'Logout exitoso' });
+  }
+
+  if (pathname === '/api/auth/validate' && req.method === 'GET') {
+    const jwt = require('jsonwebtoken');
+    const secret = process.env.JWT_SECRET || 'default_secret';
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'Token no proporcionado' });
+    }
+    const token = authHeader.substring(7);
+    try {
+      const decoded = jwt.verify(token, secret);
+      return res.status(200).json({ success: true, user: decoded });
+    } catch (error) {
+      return res.status(401).json({ success: false, message: 'Token inválido o expirado' });
+    }
   }
 
   const normalizedPath = routeHandlers[pathname]
