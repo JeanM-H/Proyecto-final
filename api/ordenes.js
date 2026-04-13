@@ -59,10 +59,18 @@ module.exports = async (req, res) => {
     try {
       const payload = await parseJsonBody(req);
       const idToUpdate = ordenId || Number(payload.id);
-      const { cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada, estado } = payload;
+      let { cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada, estado } = payload;
 
       if (!idToUpdate) {
         return res.status(400).json({ success: false, message: 'ID de orden inválido' });
+      }
+
+      const normalizedEstado = {
+        Completada: 'Completado',
+        Asignada: 'En Progreso'
+      };
+      if (estado && normalizedEstado[estado]) {
+        estado = normalizedEstado[estado];
       }
 
       const updates = {};

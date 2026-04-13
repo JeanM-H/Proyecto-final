@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (handleUnauthorized(ordenesResponse)) return;
             const ordenesData = await ordenesResponse.json();
             if (ordenesResponse.ok && ordenesData.success) {
-                const ordenesActivas = ordenesData.ordenes.filter(o => o.estado !== 'Completada' && o.estado !== 'Cancelada').length;
+                const ordenesActivas = ordenesData.ordenes.filter(o => o.estado !== 'Completado' && o.estado !== 'Cancelado').length;
                 elements.metricOrdenesActivas.textContent = ordenesActivas;
             }
 
