@@ -29,6 +29,7 @@
                         <button type="button" class="admin-tab" data-section="tecnicos">Técnicos</button>
                         <button type="button" class="admin-tab" data-section="ordenes">Órdenes</button>
                         <button type="button" class="admin-tab" data-section="cotizaciones">Cotizaciones</button>
+                        <button type="button" class="admin-tab" data-section="repuestos">Repuestos</button>
                     </nav>
                 </div>
                 <div class="admin-main">
@@ -94,6 +95,19 @@
                                 <div class="metric-content">
                                     <span class="metric-title">Cotizaciones</span>
                                     <strong id="metric-cotizaciones">--</strong>
+                                </div>
+                            </div>
+                            <div class="metric-card metric-card-repuestos">
+                                <div class="metric-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="9" cy="21" r="1"></circle>
+                                        <circle cx="20" cy="21" r="1"></circle>
+                                        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"></path>
+                                    </svg>
+                                </div>
+                                <div class="metric-content">
+                                    <span class="metric-title">Repuestos</span>
+                                    <strong id="metric-repuestos">--</strong>
                                 </div>
                             </div>
                         </div>
@@ -258,6 +272,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <div id="admin-repuestos" class="admin-section hidden">
+                        <h2>Gestión de Repuestos</h2>
+                        <div class="section-grid">
+                            <div class="card-panel">
+                                <p>Inventario de repuestos disponibles para mantenimientos.</p>
+                                <div id="repuestos-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nombre</th>
+                                                <th>Código</th>
+                                                <th>Cantidad</th>
+                                                <th>Mínimo</th>
+                                                <th>Precio</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="repuestos-table-body">
+                                            <tr><td colspan="8">Cargando repuestos...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-panel">
+                                <h3>Nuevo repuesto</h3>
+                                <button type="button" class="btn-secondary open-drawer-btn" data-form="repuesto">Abrir formulario</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -390,6 +436,24 @@
                         <p id="edit-cotizacion-form-message" class="form-message"></p>
                     </form>
                 </div>
+
+                <div id="drawer-form-repuesto" class="drawer-form hidden" data-title="Crear repuesto">
+                    <form id="repuesto-form" class="admin-form">
+                        <input id="repuesto-id" type="hidden">
+                        <div class="input-group"><label for="repuesto-nombre">Nombre</label><input id="repuesto-nombre" name="nombre" type="text" required></div>
+                        <div class="input-group"><label for="repuesto-codigo">Código</label><input id="repuesto-codigo" name="codigo" type="text"></div>
+                        <div class="input-group"><label for="repuesto-descripcion">Descripción</label><textarea id="repuesto-descripcion" name="descripcion" rows="3"></textarea></div>
+                        <div class="input-group"><label for="repuesto-cantidad">Cantidad</label><input id="repuesto-cantidad" name="cantidad" type="number" min="0"></div>
+                        <div class="input-group"><label for="repuesto-cantidad-minima">Cantidad mínima</label><input id="repuesto-cantidad-minima" name="cantidad_minima" type="number" min="0"></div>
+                        <div class="input-group"><label for="repuesto-precio">Precio unitario</label><input id="repuesto-precio" name="precio_unitario" type="number" step="0.01" min="0"></div>
+                        <div class="input-group"><label for="repuesto-proveedor">Proveedor</label><input id="repuesto-proveedor" name="proveedor" type="text"></div>
+                        <div class="input-group"><label for="repuesto-estado">Estado</label><select id="repuesto-estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select></div>
+                        <button type="submit" class="btn-primary">Guardar repuesto</button>
+                        <p id="repuesto-form-message" class="form-message"></p>
+                    </form>
+                </div>
+
+                <h3 id="repuesto-form-title" style="display: none;"></h3>
             </div>
         </aside>
 

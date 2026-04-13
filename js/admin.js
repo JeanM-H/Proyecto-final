@@ -39,17 +39,20 @@ document.addEventListener('DOMContentLoaded', function () {
         metricTecnicos: document.getElementById('metric-tecnicos'),
         metricOrdenes: document.getElementById('metric-ordenes'),
         metricCotizaciones: document.getElementById('metric-cotizaciones'),
+        metricRepuestos: document.getElementById('metric-repuestos'),
         clientesTableBody: document.getElementById('clientes-table-body'),
         equiposTableBody: document.getElementById('equipos-table-body'),
         tecnicosTableBody: document.getElementById('tecnicos-table-body'),
         ordenesTableBody: document.getElementById('ordenes-table-body'),
-        cotizacionesTableBody: document.getElementById('cotizaciones-table-body')
+        cotizacionesTableBody: document.getElementById('cotizaciones-table-body'),
+        repuestosTableBody: document.getElementById('repuestos-table-body')
     };
 
     const options = {
         clientes: [],
         equipos: [],
-        tecnicos: []
+        tecnicos: [],
+        repuestos: []
     };
 
     const drawer = document.getElementById('form-drawer');
@@ -90,6 +93,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 elements.metricTecnicos.textContent = data.counts.tecnicos || 0;
                 elements.metricOrdenes.textContent = data.counts.ordenes || 0;
                 elements.metricCotizaciones.textContent = data.counts.cotizaciones || 0;
+                
+                // Load repuestos count
+                try {
+                    const repuestosResponse = await fetch(`${apiBase}/api/repuestos`, {
+                        headers: authHeaders()
+                    });
+                    if (repuestosResponse.ok) {
+                        const repuestosData = await repuestosResponse.json();
+                        elements.metricRepuestos.textContent = (repuestosData.data || []).length || 0;
+                    }
+                } catch (err) {
+                    console.warn('Could not load repuestos count:', err);
+                    elements.metricRepuestos.textContent = 0;
+                }
             }
         } catch (error) {
             console.error('Error cargando métricas:', error);
@@ -625,6 +642,57 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function fetchRepuestos() {
+        if (!elements.repuestosTableBody) return;
+        elements.repuestosTableBody.innerHTML = '<tr><td colspan="8">Cargando repuestos...</td></tr>';
+
+        try {
+            const response = await fetch(`${apiBase}/api/repuestos`, {
+                headers: authHeaders()
+            });
+            if (handleUnauthorized(response)) return;
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                elements.repuestosTableBody.innerHTML = '<tr><td colspan="8">No se pudieron cargar los repuestos.</td></tr>';
+                return;
+            }
+            const repuestos = data.data || [];
+            if (repuestos.length === 0) {
+                elements.repuestosTableBody.innerHTML = '<tr><td colspan="8">No hay repuestos registrados.</td></tr>';
+                return;
+            }
+            options.repuestos = repuestos;
+            elements.repuestosTableBody.innerHTML = '';
+            repuestos.forEach(repuesto => {
+                const row = document.createElement('tr');
+                const estadoClass = `badge-${repuesto.estado.toLowerCase().replace(/\s+/g, '-')}`;
+                const precioFormato = Number(repuesto.precio_unitario || 0).toFixed(2);
+                row.innerHTML = `
+                    <td>${repuesto.id}</td>
+                    <td>${repuesto.nombre}</td>
+                    <td>${repuesto.codigo || 'N/A'}</td>
+                    <td>${repuesto.cantidad || 0}</td>
+                    <td>${repuesto.cantidad_minima || 0}</td>
+                    <td>$${precioFormato}</td>
+                    <td><span class="badge ${estadoClass}">${repuesto.estado}</span></td>
+                    <td class="table-actions">
+                        <div class="action-menu">
+                            <button type="button" class="action-menu-trigger" aria-haspopup="true" aria-expanded="false" data-id="${repuesto.id}">⋮</button>
+                            <div class="action-menu-dropdown hidden" role="menu">
+                                <button type="button" class="action-menu-item action-menu-edit" data-id="${repuesto.id}" role="menuitem">Editar</button>
+                                <button type="button" class="action-menu-item action-menu-delete" data-id="${repuesto.id}" role="menuitem">Eliminar</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                elements.repuestosTableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error cargando repuestos:', error);
+            elements.repuestosTableBody.innerHTML = '<tr><td colspan="8">Error al cargar repuestos.</td></tr>';
+        }
+    }
+
     function populateSelectOptions() {
         const clienteSelects = [
             document.getElementById('equipo-cliente'),
@@ -682,6 +750,56 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error guardando datos:', error);
             setFormMessage(messageId, 'Error de conexión al guardar.', 'error');
         }
+    }
+
+    async function handleDeleteRepuesto(event) {
+        const repuestoId = parseInt(event.target.dataset.id);
+        
+        if (confirm('¿Estás seguro de que deseas eliminar este repuesto? Esta acción no se puede deshacer.')) {
+            try {
+                const response = await fetch(`${apiBase}/api/repuestos/${repuestoId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() }
+                });
+                if (handleUnauthorized(response)) return;
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    setFormMessage('repuesto-form-message', 'Repuesto eliminado correctamente.', 'success');
+                    fetchRepuestos();
+                    fetchMetrics();
+                } else {
+                    setFormMessage('repuesto-form-message', data.message || 'Error al eliminar repuesto.', 'error');
+                }
+            } catch (error) {
+                console.error('Error eliminando repuesto:', error);
+                setFormMessage('repuesto-form-message', 'Error de conexión al eliminar.', 'error');
+            }
+        }
+    }
+
+    async function handleEditRepuesto(event) {
+        const repuestoId = parseInt(event.target.dataset.id);
+        const repuesto = options.repuestos.find(r => r.id === repuestoId);
+        
+        if (!repuesto) {
+            alert('Repuesto no encontrado');
+            return;
+        }
+
+        document.getElementById('repuesto-form-title').textContent = 'Editar Repuesto';
+        document.getElementById('repuesto-id').value = repuesto.id;
+        document.getElementById('repuesto-nombre').value = repuesto.nombre;
+        document.getElementById('repuesto-codigo').value = repuesto.codigo || '';
+        document.getElementById('repuesto-descripcion').value = repuesto.descripcion || '';
+        document.getElementById('repuesto-cantidad').value = repuesto.cantidad || 0;
+        document.getElementById('repuesto-cantidad-minima').value = repuesto.cantidad_minima || 5;
+        document.getElementById('repuesto-precio').value = repuesto.precio_unitario || 0;
+        document.getElementById('repuesto-proveedor').value = repuesto.proveedor || '';
+        document.getElementById('repuesto-estado').value = repuesto.estado || 'Activo';
+        
+        drawer.classList.add('open');
+        drawerBackdrop.classList.add('open');
     }
 
     function bindForms() {
@@ -816,6 +934,54 @@ document.addEventListener('DOMContentLoaded', function () {
                     descripcion: document.getElementById('cotizacion-descripcion').value.trim(),
                     monto_estimado: Number(document.getElementById('cotizacion-monto').value)
                 }, 'Cotización creada correctamente.', 'cotizacion-form', 'cotizacion-form-message', fetchCotizaciones);
+            });
+        }
+
+        const repuestoForm = document.getElementById('repuesto-form');
+        if (repuestoForm) {
+            repuestoForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const repuestoId = document.getElementById('repuesto-id').value;
+                const payload = {
+                    nombre: document.getElementById('repuesto-nombre').value.trim(),
+                    codigo: document.getElementById('repuesto-codigo').value.trim() || null,
+                    descripcion: document.getElementById('repuesto-descripcion').value.trim() || null,
+                    cantidad: Number(document.getElementById('repuesto-cantidad').value) || 0,
+                    cantidad_minima: Number(document.getElementById('repuesto-cantidad-minima').value) || 5,
+                    precio_unitario: Number(document.getElementById('repuesto-precio').value) || 0,
+                    proveedor: document.getElementById('repuesto-proveedor').value.trim() || null,
+                    estado: document.getElementById('repuesto-estado').value
+                };
+
+                try {
+                    const url = repuestoId ? `${apiBase}/api/repuestos/${repuestoId}` : `${apiBase}/api/repuestos`;
+                    const method = repuestoId ? 'PUT' : 'POST';
+                    const response = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                        body: JSON.stringify(payload)
+                    });
+                    if (handleUnauthorized(response)) return;
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        const message = repuestoId ? 'Repuesto actualizado correctamente.' : 'Repuesto creado correctamente.';
+                        setFormMessage('repuesto-form-message', message, 'success');
+                        repuestoForm.reset();
+                        document.getElementById('repuesto-id').value = '';
+                        document.getElementById('repuesto-form-title').textContent = 'Crear repuesto';
+                        setTimeout(() => {
+                            closeDrawer();
+                            fetchRepuestos();
+                            fetchMetrics();
+                        }, 500);
+                    } else {
+                        setFormMessage('repuesto-form-message', data.message || 'Error al guardar repuesto.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error guardando repuesto:', error);
+                    setFormMessage('repuesto-form-message', 'Error de conexión al guardar.', 'error');
+                }
             });
         }
 
@@ -1187,6 +1353,32 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        // Event listeners para repuestos
+        if (elements.repuestosTableBody) {
+            elements.repuestosTableBody.addEventListener('click', event => {
+                const trigger = event.target.closest('.action-menu-trigger');
+                if (trigger) {
+                    event.stopPropagation();
+                    toggleActionMenu(trigger);
+                    return;
+                }
+
+                const editButton = event.target.closest('.action-menu-edit');
+                if (editButton) {
+                    handleEditRepuesto({ target: editButton });
+                    closeActionMenus();
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.action-menu-delete');
+                if (deleteButton) {
+                    handleDeleteRepuesto({ target: deleteButton });
+                    closeActionMenus();
+                    return;
+                }
+            });
+        }
+
         document.addEventListener('click', event => {
             if (!event.target.closest('.action-menu')) {
                 closeActionMenus();
@@ -1254,6 +1446,8 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (tab.dataset.section === 'cotizaciones') {
                 fetchClientes();
                 fetchCotizaciones();
+            } else if (tab.dataset.section === 'repuestos') {
+                fetchRepuestos();
             }
         });
     });

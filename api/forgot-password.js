@@ -1,24 +1,40 @@
 const supabase = require('../supabaseClient');
 const nodemailer = require('nodemailer');
 
-const emailConfigured = Boolean(
+const hasSendGridKey = Boolean(process.env.SENDGRID_API_KEY);
+const hasSmtpConfig = Boolean(
   process.env.SMTP_HOST &&
   process.env.SMTP_USER &&
-  process.env.SMTP_PASS &&
-  process.env.EMAIL_FROM
+  process.env.SMTP_PASS
+);
+
+const emailConfigured = Boolean(
+  process.env.EMAIL_FROM && (hasSmtpConfig || hasSendGridKey)
 );
 
 let transporter = null;
 if (emailConfigured) {
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  });
+  if (hasSendGridKey) {
+    transporter = nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY
+      }
+    });
+  } else {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+  }
 }
 
 function generateRecoveryCode() {
