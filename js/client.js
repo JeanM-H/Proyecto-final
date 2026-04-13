@@ -350,25 +350,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindFormDrawerButtons() {
-        console.log('=== BIND FORM DRAWER BUTTONS ===');
-        
-        document.body.addEventListener('click', event => {
-            console.log('Click en body, target:', event.target.tagName, 'classes:', event.target.className);
-            
-            const button = event.target.closest('.open-drawer-btn');
-            if (!button) {
-                console.log('No es botón de drawer');
-                return;
-            }
-            
-            console.log('✓ BOTÓN DE DRAWER ENCONTRADO!', button.dataset.form);
-            event.preventDefault();
-            event.stopPropagation();
         document.body.addEventListener('click', event => {
             const button = event.target.closest('.open-drawer-btn');
             if (!button) return;
             event.preventDefault();
-            const formType = button.dataset.form || 'solicitar-servicio'
+            const formType = button.dataset.form || 'solicitar-servicio';
+            openDrawer(formType);
+        });
+
+        if (closeDrawerButton) {
+            closeDrawerButton.addEventListener('click', closeDrawer);
+        }
+
+        if (drawerBackdrop) {
+            drawerBackdrop.addEventListener('click', closeDrawer);
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeDrawer();
             }
         });
     }
