@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('=== CLIENT.JS CARGADO ===');
+    
     const apiBase = window.location.origin;
     const authToken = localStorage.getItem('coolcare_token');
     const storedRole = localStorage.getItem('coolcare_role');
@@ -482,20 +484,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindActionMenuEvents() {
-        if (!elements.equiposTableBody) {
-            console.warn('equiposTableBody no encontrado');
-            return;
-        }
+        console.log('bindActionMenuEvents: usando event delegation en document.body');
 
-        console.log('Bindando eventos de acción a la tabla de equipos');
+        // Usar delegación de eventos en el body para capturar clics en los botones de acción
+        document.body.addEventListener('click', event => {
+            // Si el clic no es dentro de una tabla de equipos, ignora
+            const table = event.target.closest('#equipos-table-body');
+            if (!table && !event.target.closest('.action-menu')) return;
 
-        // Event listeners para equipos
-        elements.equiposTableBody.addEventListener('click', event => {
-            console.log('Click en tabla de equipos', event.target);
+            console.log('Click detectado en tabla/menú de equipos', event.target);
             
             const trigger = event.target.closest('.action-menu-trigger');
             if (trigger) {
-                console.log('Trigger encontrado', trigger);
+                console.log('Trigger encontrado');
                 event.stopPropagation();
                 toggleActionMenu(trigger);
                 return;
@@ -503,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const editButton = event.target.closest('.action-menu-edit');
             if (editButton) {
-                console.log('Editar botón encontrado');
+                console.log('Editar botón encontrado, ID:', editButton.dataset.id);
                 handleEditEquipo({ target: editButton });
                 closeActionMenus();
                 return;
@@ -511,12 +512,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const deleteButton = event.target.closest('.action-menu-delete');
             if (deleteButton) {
-                console.log('Eliminar botón encontrado');
+                console.log('Eliminar botón encontrado, ID:', deleteButton.dataset.id);
                 handleDeleteEquipo({ target: deleteButton });
                 closeActionMenus();
                 return;
             }
-        });
+        }, { capture: false });
     }
 
     // Formulario de edición de equipo
@@ -579,10 +580,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Initialize
+    console.log('Inicializando...');
     fetchClientInfo();
     fetchMetrics();
     fetchOrdenes();
     bindFormDrawerButtons();
+    console.log('Llamando a bindActionMenuEvents()...');
     bindActionMenuEvents();
+    console.log('bindActionMenuEvents() llamado');
     showClientSection('admin-ordenes');
 });
