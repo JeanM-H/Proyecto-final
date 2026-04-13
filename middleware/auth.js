@@ -19,6 +19,6 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const generateToken = (payload) => jwt.sign(payload, secret, { expiresIn: '1h' });
+const generateToken = (payload) => jwt.sign(payload, secret, { expiresIn: '24h' });
 
 module.exports = { verifyToken, generateToken };

@@ -1,9 +1,32 @@
 document.addEventListener('DOMContentLoaded', function () {
     const apiBase = window.location.origin;
     const authToken = localStorage.getItem('coolcare_token');
-    const userRole = localStorage.getItem('coolcare_role');
+    const storedRole = localStorage.getItem('coolcare_role');
+
+    function parseJwt(token) {
+        if (!token) return null;
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        try {
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (error) {
+            console.error('Error parsing JWT:', error);
+            return null;
+        }
+    }
+
+    const tokenRole = authToken ? (parseJwt(authToken)?.rol || parseJwt(authToken)?.role) : null;
+    const userRole = storedRole || tokenRole;
+
+    console.log('Auth token:', authToken ? 'present' : 'missing');
+    console.log('Stored role:', storedRole);
+    console.log('Token role:', tokenRole);
+    console.log('User role:', userRole);
 
     if (!authToken || userRole !== 'Administrador') {
+        console.log('Redirecting to login: no token or wrong role');
         localStorage.removeItem('coolcare_token');
         localStorage.removeItem('coolcare_role');
         window.location.href = 'login.html';
@@ -21,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const handleUnauthorized = (response) => {
         if (response.status === 401) {
+            console.log('Received 401, redirecting to login');
             redirectToLogin();
             return true;
         }

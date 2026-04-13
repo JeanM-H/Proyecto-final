@@ -1,8 +1,27 @@
 document.addEventListener('DOMContentLoaded', function () {
     const apiBase = window.location.origin;
     const authToken = localStorage.getItem('coolcare_token');
+    const storedRole = localStorage.getItem('coolcare_role');
 
-    if (!authToken) {
+    function parseJwt(tokenValue) {
+        if (!tokenValue) return null;
+        const parts = tokenValue.split('.');
+        if (parts.length !== 3) return null;
+        try {
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    const tokenRole = authToken ? (parseJwt(authToken)?.rol || parseJwt(authToken)?.role) : null;
+    const userRole = storedRole || tokenRole;
+
+    if (!authToken || userRole !== 'Cliente') {
+        localStorage.removeItem('coolcare_token');
+        localStorage.removeItem('coolcare_role');
         window.location.href = 'login.html';
         return;
     }

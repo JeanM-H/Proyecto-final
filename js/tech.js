@@ -1,7 +1,23 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const apiBase = window.location.origin;
     const token = localStorage.getItem('coolcare_token');
-    const role = localStorage.getItem('coolcare_role');
+    const storedRole = localStorage.getItem('coolcare_role');
+
+    function parseJwt(tokenValue) {
+        if (!tokenValue) return null;
+        const parts = tokenValue.split('.');
+        if (parts.length !== 3) return null;
+        try {
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    const tokenRole = token ? (parseJwt(token)?.rol || parseJwt(token)?.role) : null;
+    const role = storedRole || tokenRole;
 
     if (!token || role !== 'Técnico') {
         window.location.href = 'login.html';

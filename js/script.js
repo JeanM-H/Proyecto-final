@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    loginForm.addEventListener('submit', async function(event) {
-        event.preventDefault();
+    const loginButton = document.getElementById('login-button');
 
+    const handleLogin = async function() {
         const email = loginForm.email.value.trim();
         const password = loginForm.password.value.trim();
         const role = loginForm.role.value;
@@ -58,10 +58,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            function parseJwt(token) {
+                if (!token) return null;
+                const parts = token.split('.');
+                if (parts.length !== 3) return null;
+                try {
+                    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                    return JSON.parse(jsonPayload);
+                } catch (error) {
+                    console.warn('No se pudo parsear JWT:', error);
+                    return null;
+                }
+            }
+
+            function getRoleFromToken(token) {
+                const payload = parseJwt(token);
+                return payload?.rol || payload?.role || null;
+            }
+
             if (data && data.success) {
                 if (data.token) {
                     localStorage.setItem('coolcare_token', data.token);
-                    localStorage.setItem('coolcare_role', data.user?.rol || role);
+                    const tokenRole = getRoleFromToken(data.token);
+                    const userRole = data.user?.rol || tokenRole || role;
+                    localStorage.setItem('coolcare_role', userRole);
+                    console.log('Login successful, token saved, role:', userRole);
                 } else {
                     console.warn('Login exitoso pero no se recibió token.');
                 }
@@ -74,7 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.href = targetPage;
                     }, 800);
                 } else {
-                    const userRole = data.user?.rol || role;
+                    const tokenRole = getRoleFromToken(data.token);
+                    const userRole = data.user?.rol || tokenRole || role;
                     const targetPage = userRole === 'Administrador' ? 'admin.html' : userRole === 'Técnico' ? 'tech.html' : 'client.html';
                     localStorage.setItem('coolcare_role', userRole);
                     messageBox.textContent = `¡Bienvenido, ${userRole}! Redirigiendo...`;
@@ -95,5 +118,14 @@ document.addEventListener('DOMContentLoaded', function() {
             messageBox.style.color = '#dc2626';
             console.error('Error:', error);
         }
+    };
+
+    if (loginButton) {
+        loginButton.addEventListener('click', handleLogin);
+    }
+
+    loginForm.addEventListener('submit', function(event) {
+        event.preventDefault();
     });
+
 });
