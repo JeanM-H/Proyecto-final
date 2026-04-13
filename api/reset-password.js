@@ -1,4 +1,4 @@
-const supabase = require('./supabaseClient');
+const supabase = require('../supabaseClient');
 const bcrypt = require('bcryptjs');
 
 function parseJsonBody(req) {

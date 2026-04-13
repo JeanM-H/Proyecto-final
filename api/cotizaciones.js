@@ -1,4 +1,4 @@
-const supabase = require('./supabaseClient');
+const supabase = require('../supabaseClient');
 
 function parseJsonBody(req) {
   return new Promise((resolve, reject) => {

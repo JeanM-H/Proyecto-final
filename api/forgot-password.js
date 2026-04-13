@@ -1,4 +1,4 @@
-const supabase = require('./supabaseClient');
+const supabase = require('../supabaseClient');
 
 function generateRecoveryCode() {
   return Math.random().toString().substring(2, 8).padEnd(6, '0');

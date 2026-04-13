@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const supabase = require('./supabaseClient');
+const supabase = require('../supabaseClient');
 const { generateToken } = require('../middleware/auth');
 
 function parseJsonBody(req) {
