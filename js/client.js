@@ -482,12 +482,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindActionMenuEvents() {
-        if (!elements.equiposTableBody) return;
+        if (!elements.equiposTableBody) {
+            console.warn('equiposTableBody no encontrado');
+            return;
+        }
+
+        console.log('Bindando eventos de acción a la tabla de equipos');
 
         // Event listeners para equipos
         elements.equiposTableBody.addEventListener('click', event => {
+            console.log('Click en tabla de equipos', event.target);
+            
             const trigger = event.target.closest('.action-menu-trigger');
             if (trigger) {
+                console.log('Trigger encontrado', trigger);
                 event.stopPropagation();
                 toggleActionMenu(trigger);
                 return;
@@ -495,6 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const editButton = event.target.closest('.action-menu-edit');
             if (editButton) {
+                console.log('Editar botón encontrado');
                 handleEditEquipo({ target: editButton });
                 closeActionMenus();
                 return;
@@ -502,6 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const deleteButton = event.target.closest('.action-menu-delete');
             if (deleteButton) {
+                console.log('Eliminar botón encontrado');
                 handleDeleteEquipo({ target: deleteButton });
                 closeActionMenus();
                 return;
