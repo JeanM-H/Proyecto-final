@@ -341,12 +341,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindFormDrawerButtons() {
-        document.querySelectorAll('.open-drawer-btn').forEach(button => {
-            button.addEventListener('click', event => {
-                event.preventDefault();
-                const formType = button.dataset.form || 'solicitar-servicio';
-                openDrawer(formType);
-            });
+        document.body.addEventListener('click', event => {
+            const button = event.target.closest('.open-drawer-btn');
+            if (!button) return;
+            event.preventDefault();
+            const formType = button.dataset.form || 'solicitar-servicio';
+            openDrawer(formType);
         });
 
         if (closeDrawerButton) {
@@ -403,21 +403,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Bind tabs
-    clientTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const sectionId = `admin-${tab.dataset.section}`;
-            showClientSection(sectionId);
+    // Bind tabs using delegation so the buttons work even if the DOM changes
+    document.body.addEventListener('click', event => {
+        const tab = event.target.closest('.admin-tab');
+        if (!tab) return;
+        event.preventDefault();
+        const sectionId = `admin-${tab.dataset.section}`;
+        showClientSection(sectionId);
 
-            // Load data based on section
-            if (tab.dataset.section === 'ordenes') {
-                fetchOrdenes();
-            } else if (tab.dataset.section === 'cotizaciones') {
-                fetchCotizaciones();
-            } else if (tab.dataset.section === 'equipos') {
-                fetchEquipos();
-            }
-        });
+        // Load data based on section
+        if (tab.dataset.section === 'ordenes') {
+            fetchOrdenes();
+        } else if (tab.dataset.section === 'cotizaciones') {
+            fetchCotizaciones();
+        } else if (tab.dataset.section === 'equipos') {
+            fetchEquipos();
+        }
     });
 
     // Initialize
