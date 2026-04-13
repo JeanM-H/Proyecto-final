@@ -158,13 +158,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 const equipoInfo = orden.equipo ? `${orden.equipo.marca} ${orden.equipo.modelo}` : 'N/A';
                 const tecnicoInfo = orden.tecnico ? orden.tecnico.especialidad : 'No asignado';
                 const fechaProgramada = orden.fecha_programada ? new Date(orden.fecha_programada).toLocaleDateString('es-CO') : 'No definida';
+                
+                const estadoClass = `badge-${orden.estado.toLowerCase().replace(/\s+/g, '-')}`;
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${orden.id}</td>
                     <td>${equipoInfo}</td>
                     <td>${orden.tipo}</td>
-                    <td><span class="status-${orden.estado.toLowerCase().replace(' ', '-')}">${orden.estado}</span></td>
+                    <td><span class="badge ${estadoClass}">${orden.estado}</span></td>
                     <td>${fechaProgramada}</td>
                     <td>${tecnicoInfo}</td>
                 `;
@@ -199,13 +201,15 @@ document.addEventListener('DOMContentLoaded', function () {
             cotizaciones.forEach(cotizacion => {
                 const fechaSolicitud = cotizacion.fecha_solicitud ? new Date(cotizacion.fecha_solicitud).toLocaleDateString('es-CO') : 'N/A';
                 const monto = Number(cotizacion.monto_estimado).toFixed(2);
+                
+                const estadoClass = `badge-${cotizacion.estado.toLowerCase().replace(/\s+/g, '-')}`;
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${cotizacion.id}</td>
                     <td>${cotizacion.descripcion}</td>
                     <td>$${monto}</td>
-                    <td><span class="status-${cotizacion.estado.toLowerCase()}">${cotizacion.estado}</span></td>
+                    <td><span class="badge ${estadoClass}">${cotizacion.estado}</span></td>
                     <td>${fechaSolicitud}</td>
                 `;
                 elements.cotizacionesTableBody.appendChild(row);

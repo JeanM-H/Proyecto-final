@@ -21,20 +21,51 @@
         <main id="content">
             <!-- Dashboard del Cliente -->
             <section class="welcome-card">
-                <h2>Panel de Cliente</h2>
-                <p id="cliente-info">Cargando información...</p>
+                <div class="welcome-header">
+                    <div>
+                        <h2>Panel de Cliente</h2>
+                        <p id="cliente-info" class="cliente-info-text">Cargando información...</p>
+                    </div>
+                    <div class="welcome-icon">👋</div>
+                </div>
                 <div class="metrics-grid">
-                    <div class="metric-card">
-                        <h3>Órdenes Activas</h3>
-                        <div class="metric-value" id="metric-ordenes-activas">0</div>
+                    <div class="metric-card metric-card-ordenes">
+                        <div class="metric-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4"></path>
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Órdenes Activas</h3>
+                            <div class="metric-value" id="metric-ordenes-activas">0</div>
+                            <p class="metric-subtitle">En progreso</p>
+                        </div>
                     </div>
-                    <div class="metric-card">
-                        <h3>Cotizaciones Pendientes</h3>
-                        <div class="metric-value" id="metric-cotizaciones-pendientes">0</div>
+                    <div class="metric-card metric-card-cotizaciones">
+                        <div class="metric-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
+                                <polyline points="13 2 13 9 20 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Cotizaciones Pendientes</h3>
+                            <div class="metric-value" id="metric-cotizaciones-pendientes">0</div>
+                            <p class="metric-subtitle">Esperando respuesta</p>
+                        </div>
                     </div>
-                    <div class="metric-card">
-                        <h3>Equipos Registrados</h3>
-                        <div class="metric-value" id="metric-equipos">0</div>
+                    <div class="metric-card metric-card-equipos">
+                        <div class="metric-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <h3>Equipos Registrados</h3>
+                            <div class="metric-value" id="metric-equipos">0</div>
+                            <p class="metric-subtitle">Activos</p>
+                        </div>
                     </div>
                 </div>
             </section>
