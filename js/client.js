@@ -352,11 +352,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function bindFormDrawerButtons() {
+        console.log('=== BIND FORM DRAWER BUTTONS ===');
+        
         document.body.addEventListener('click', event => {
+            console.log('Click en body, target:', event.target.tagName, 'classes:', event.target.className);
+            
             const button = event.target.closest('.open-drawer-btn');
-            if (!button) return;
+            if (!button) {
+                console.log('No es botón de drawer');
+                return;
+            }
+            
+            console.log('✓ BOTÓN DE DRAWER ENCONTRADO!', button.dataset.form);
             event.preventDefault();
+            event.stopPropagation();
+            
             const formType = button.dataset.form || 'solicitar-servicio';
+            console.log('Abriendo drawer con formType:', formType);
             openDrawer(formType);
         });
 
