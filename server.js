@@ -23,6 +23,7 @@ app.use('/api/repuestos', require('./routes/repuestos'));
 app.use('/api/dashboard-metrics', require('./routes/dashboard-metrics'));
 app.use('/api/debug', require('./routes/debug')); // DEBUG ONLY
 app.use('/api/evidencias', require('./routes/evidencias'));
+app.use('/api/detalle-repuestos', require('./routes/detalle_repuestos'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {

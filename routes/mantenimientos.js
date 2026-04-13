@@ -31,7 +31,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('mantenimientos')
-      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)))')
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -51,7 +51,7 @@ router.get('/tecnico/:tecnico_id', verifyToken, async (req, res) => {
     const tecnicoId = Number(req.params.tecnico_id);
     const { data, error } = await supabase
       .from('mantenimientos')
-      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)))')
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
       .eq('tecnico_id', tecnicoId)
       .order('created_at', { ascending: false });
 
@@ -72,7 +72,7 @@ router.get('/orden/:orden_id', verifyToken, async (req, res) => {
     const ordenId = Number(req.params.orden_id);
     const { data, error } = await supabase
       .from('mantenimientos')
-      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)))')
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
       .eq('orden_id', ordenId)
       .order('created_at', { ascending: false });
 
@@ -93,7 +93,7 @@ router.get('/:id', verifyToken, async (req, res) => {
     const mantenimientoId = Number(req.params.id);
     const { data, error } = await supabase
       .from('mantenimientos')
-      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)))')
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
       .eq('id', mantenimientoId)
       .maybeSingle();
 
@@ -124,7 +124,7 @@ router.post('/', verifyToken, async (req, res) => {
       orden_id,
       notas,
       tiempo_dedicado,
-      repuestos_utilizados,
+      repuestos, // Ahora es array: [{repuesto_id: 1, cantidad: 2}, ...]
       fecha_inicio,
       fecha_fin,
       observaciones
@@ -146,28 +146,47 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Orden no encontrada o no asignada a este técnico' });
     }
 
-    const insertData = {
-      orden_id,
-      tecnico_id: tecnico.id,
-      notas,
-      tiempo_dedicado,
-      repuestos_utilizados: repuestos_utilizados || null,
-      fecha_inicio: fecha_inicio || new Date().toISOString(),
-      fecha_fin: fecha_fin || null,
-      observaciones: observaciones || null,
-      created_by: req.user.id
-    };
-
-    const { data, error } = await supabase
+    // Iniciar transacción
+    const { data: mantenimiento, error: mantenimientoError } = await supabase
       .from('mantenimientos')
-      .insert(insertData)
+      .insert({
+        orden_id,
+        tecnico_id: tecnico.id,
+        notas,
+        tiempo_dedicado,
+        repuestos_utilizados: null, // Legacy field, ahora usamos detalle_repuestos
+        fecha_inicio: fecha_inicio || new Date().toISOString(),
+        fecha_fin: fecha_fin || null,
+        observaciones: observaciones || null,
+        created_by: req.user.id
+      })
       .single();
 
-    if (error) {
-      console.error('Error creando mantenimiento:', error);
+    if (mantenimientoError) {
+      console.error('Error creando mantenimiento:', mantenimientoError);
       return res.status(500).json({ success: false, message: 'Error al crear mantenimiento' });
     }
 
+    // Crear entradas en detalle_repuestos si se proporcionaron
+    if (repuestos && Array.isArray(repuestos) && repuestos.length > 0) {
+      const detalleRepuestos = repuestos.map(r => ({
+        mantenimiento_id: mantenimiento.id,
+        repuesto_id: r.repuesto_id,
+        cantidad: r.cantidad,
+        created_at: new Date().toISOString()
+      }));
+
+      const { error: detalleError } = await supabase
+        .from('detalle_repuestos')
+        .insert(detalleRepuestos);
+
+      if (detalleError) {
+        console.error('Error creando detalle repuestos:', detalleError);
+        // No fallar la creación del mantenimiento por esto, pero loggear
+      }
+    }
+
+    // Actualizar estado de la orden
     const ordenUpdates = {
       estado: fecha_fin ? 'Completada' : 'En Progreso'
     };
@@ -181,7 +200,7 @@ router.post('/', verifyToken, async (req, res) => {
       .update(ordenUpdates)
       .eq('id', orden_id);
 
-    return res.status(201).json({ success: true, mantenimiento: data });
+    return res.status(201).json({ success: true, mantenimiento: mantenimiento });
   } catch (error) {
     console.error('Error mantenimientos POST:', error);
     return res.status(500).json({ success: false, message: 'Error al registrar mantenimiento' });
@@ -194,7 +213,7 @@ router.put('/:id', verifyToken, async (req, res) => {
     const mantenimientoId = Number(req.params.id);
     const userId = req.user.id;
     const userRol = req.user.rol;
-    const { notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones } = req.body;
+    const { notas, tiempo_dedicado, repuestos, fecha_inicio, fecha_fin, observaciones } = req.body;
 
     // Verificar que el mantenimiento existe y pertenece al técnico o es admin
     const { data: mantenimiento, error: selectError } = await supabase
@@ -223,30 +242,67 @@ router.put('/:id', verifyToken, async (req, res) => {
     const updates = {};
     if (notas !== undefined) updates.notas = notas;
     if (tiempo_dedicado !== undefined) updates.tiempo_dedicado = tiempo_dedicado;
-    if (repuestos_utilizados !== undefined) updates.repuestos_utilizados = repuestos_utilizados;
     if (fecha_inicio !== undefined) updates.fecha_inicio = fecha_inicio;
     if (fecha_fin !== undefined) updates.fecha_fin = fecha_fin;
     if (observaciones !== undefined) updates.observaciones = observaciones;
 
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ success: false, message: 'No hay campos para actualizar' });
+    if (Object.keys(updates).length > 0) {
+      updates.updated_by = req.user.id;
+
+      const { data, error } = await supabase
+        .from('mantenimientos')
+        .update(updates)
+        .eq('id', mantenimientoId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error actualizando mantenimiento:', error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar mantenimiento' });
+      }
     }
 
-    updates.updated_by = req.user.id;
+    // Actualizar repuestos si se proporcionaron
+    if (repuestos !== undefined && Array.isArray(repuestos)) {
+      // Eliminar repuestos existentes
+      await supabase
+        .from('detalle_repuestos')
+        .delete()
+        .eq('mantenimiento_id', mantenimientoId);
 
-    const { data, error } = await supabase
+      // Crear nuevos repuestos si hay
+      if (repuestos.length > 0) {
+        const detalleRepuestos = repuestos.map(r => ({
+          mantenimiento_id: mantenimientoId,
+          repuesto_id: r.repuesto_id,
+          cantidad: r.cantidad,
+          created_at: new Date().toISOString()
+        }));
+
+        const { error: detalleError } = await supabase
+          .from('detalle_repuestos')
+          .insert(detalleRepuestos);
+
+        if (detalleError) {
+          console.error('Error actualizando detalle repuestos:', detalleError);
+          return res.status(500).json({ success: false, message: 'Error al actualizar repuestos' });
+        }
+      }
+    }
+
+    // Obtener mantenimiento actualizado con repuestos
+    const { data: mantenimientoActualizado, error: getError } = await supabase
       .from('mantenimientos')
-      .update(updates)
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
       .eq('id', mantenimientoId)
-      .select()
       .single();
 
-    if (error) {
-      console.error('Error actualizando mantenimiento:', error);
-      return res.status(500).json({ success: false, message: 'Error al actualizar mantenimiento' });
+    if (getError) {
+      console.error('Error obteniendo mantenimiento actualizado:', getError);
+      return res.status(500).json({ success: false, message: 'Error al obtener mantenimiento actualizado' });
     }
 
-    return res.status(200).json({ success: true, mantenimiento: data });
+    return res.status(200).json({ success: true, mantenimiento: mantenimientoActualizado });
   } catch (error) {
     console.error('Error mantenimientos PUT:', error);
     return res.status(500).json({ success: false, message: 'Error al actualizar mantenimiento' });
