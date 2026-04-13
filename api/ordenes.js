@@ -19,7 +19,7 @@ function parseJsonBody(req) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -52,6 +52,47 @@ module.exports = async (req, res) => {
     } catch (error) {
       console.error('Error orden detalle:', error);
       return res.status(500).json({ success: false, message: 'Error al obtener orden' });
+    }
+  }
+
+  if (req.method === 'PUT') {
+    try {
+      const payload = await parseJsonBody(req);
+      const idToUpdate = ordenId || Number(payload.id);
+      const { cliente_id, equipo_id, tecnico_id, tipo, descripcion, fecha_programada, estado } = payload;
+
+      if (!idToUpdate) {
+        return res.status(400).json({ success: false, message: 'ID de orden inválido' });
+      }
+
+      const updates = {};
+      if (cliente_id) updates.cliente_id = cliente_id;
+      if (equipo_id) updates.equipo_id = equipo_id;
+      if (tecnico_id) updates.tecnico_id = tecnico_id;
+      if (tipo) updates.tipo = tipo;
+      if (descripcion) updates.descripcion = descripcion;
+      if (fecha_programada !== undefined) updates.fecha_programada = fecha_programada;
+      if (estado) updates.estado = estado;
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ success: false, message: 'No hay campos para actualizar' });
+      }
+
+      const { data, error } = await supabase
+        .from('ordenes_mantenimiento')
+        .update(updates)
+        .eq('id', idToUpdate)
+        .single();
+
+      if (error) {
+        console.error('Error actualizando orden:', error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar la orden' });
+      }
+
+      return res.status(200).json({ success: true, orden: data });
+    } catch (error) {
+      console.error('Error ordenes PUT:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar la orden' });
     }
   }
 

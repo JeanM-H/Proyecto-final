@@ -918,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
 
                 try {
-                    const response = await fetch(`${apiBase}/api/ordenes`, {
+                    const response = await fetch(`${apiBase}/api/ordenes/${ordenId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', ...authHeaders() },
                         body: JSON.stringify(payload)
