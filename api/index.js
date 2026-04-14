@@ -75,6 +75,10 @@ module.exports = async (req, res) => {
   const handler = routeHandlers[normalizedPath];
   if (handler) {
     try {
+      // Ajustar req.url para que el router de Express reciba la ruta relativa correcta.
+      const relativePath = pathname.replace(normalizedPath, '') || '/';
+      req.url = relativePath;
+      req.originalUrl = pathname;
       await handler(req, res);
       return;
     } catch (error) {
