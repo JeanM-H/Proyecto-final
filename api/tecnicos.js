@@ -43,11 +43,13 @@ module.exports = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
   const pathSegments = pathname.split('/').filter(Boolean);
-  const tecnicoId = pathSegments.length > 0 && !Number.isNaN(Number(pathSegments[0])) ? Number(pathSegments[0]) : null;
+  const tecnicosIndex = pathSegments.indexOf('tecnicos');
+  const relativeSegments = tecnicosIndex >= 0 ? pathSegments.slice(tecnicosIndex + 1) : pathSegments;
+  const tecnicoId = relativeSegments.length > 0 && !Number.isNaN(Number(relativeSegments[0])) ? Number(relativeSegments[0]) : null;
 
   if (req.method === 'GET') {
     try {
-      if (pathSegments[0] === 'me') {
+      if (relativeSegments[0] === 'me') {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
           return res.status(401).json({ success: false, message: 'Token no proporcionado' });
