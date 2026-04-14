@@ -17,6 +17,22 @@ function parseJsonBody(req) {
   });
 }
 
+async function getRequestBody(req) {
+  if (req.body !== undefined) {
+    return req.body;
+  }
+  return parseJsonBody(req);
+}
+
+function normalizeNumber(value) {
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function normalizeDate(value) {
+  return value === '' ? null : value;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -70,15 +86,16 @@ module.exports = async (req, res) => {
         return res.status(400).json({ success: false, message: 'ID del equipo es requerido' });
       }
 
-      const payload = await parseJsonBody(req);
-      const { cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado } = payload;
+      const payload = await getRequestBody(req);
+      const clienteId = normalizeNumber(payload.cliente_id);
+      const { marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado } = payload;
       const updatePayload = {};
-      if (cliente_id) updatePayload.cliente_id = cliente_id;
+      if (clienteId) updatePayload.cliente_id = clienteId;
       if (marca) updatePayload.marca = marca;
       if (modelo) updatePayload.modelo = modelo;
       if (serial) updatePayload.serial = serial;
       if (tipo) updatePayload.tipo = tipo;
-      if (fecha_instalacion !== undefined) updatePayload.fecha_instalacion = fecha_instalacion;
+      if (fecha_instalacion !== undefined) updatePayload.fecha_instalacion = normalizeDate(fecha_instalacion);
       if (ubicacion !== undefined) updatePayload.ubicacion = ubicacion;
       if (estado !== undefined) updatePayload.estado = estado;
 
@@ -95,13 +112,13 @@ module.exports = async (req, res) => {
 
       if (error) {
         console.error('Error actualizando equipo:', error);
-        return res.status(500).json({ success: false, message: 'Error al actualizar el equipo' });
+        return res.status(500).json({ success: false, message: 'Error al actualizar el equipo', detail: error.message || error.details });
       }
 
       return res.status(200).json({ success: true, message: 'Equipo actualizado correctamente', equipo: data });
     } catch (error) {
       console.error('Error equipos PUT:', error);
-      return res.status(500).json({ success: false, message: 'Error al actualizar el equipo' });
+      return res.status(500).json({ success: false, message: 'Error al actualizar el equipo', detail: error.message });
     }
   }
 
@@ -141,27 +158,31 @@ module.exports = async (req, res) => {
 
   if (req.method === 'POST') {
     try {
-      const payload = await parseJsonBody(req);
-      const { cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado } = payload;
+      const payload = await getRequestBody(req);
+      const clienteId = normalizeNumber(payload.cliente_id);
+      const { marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado } = payload;
 
-      if (!cliente_id || !marca || !modelo || !serial || !tipo) {
+      if (!clienteId || !marca || !modelo || !serial || !tipo) {
         return res.status(400).json({ success: false, message: 'Datos incompletos para crear el equipo' });
       }
 
       const { data, error } = await supabase
         .from('equipos_climatizacion')
-        .insert({ cliente_id, marca, modelo, serial, tipo, fecha_instalacion, ubicacion, estado: estado || 'Activo' })
+        .insert({ cliente_id: clienteId, marca, modelo, serial, tipo, fecha_instalacion: normalizeDate(fecha_instalacion), ubicacion, estado: estado || 'Activo' })
         .single();
 
       if (error) {
         console.error('Error creando equipo:', error);
-        return res.status(500).json({ success: false, message: 'Error al crear el equipo' });
+        const message = error.code === '23505' || error.message?.includes('duplicate')
+          ? 'Ya existe un equipo con ese serial.'
+          : 'Error al crear el equipo';
+        return res.status(500).json({ success: false, message, detail: error.message || error.details });
       }
 
       return res.status(201).json({ success: true, equipo: data });
     } catch (error) {
       console.error('Error equipos POST:', error);
-      return res.status(500).json({ success: false, message: 'Error al crear el equipo' });
+      return res.status(500).json({ success: false, message: 'Error al crear el equipo', detail: error.message });
     }
   }
 

@@ -825,7 +825,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (refreshCallback) refreshCallback();
                 fetchMetrics();
             } else {
-                setFormMessage(messageId, data.message || 'Error al guardar.', 'error');
+                const errorMessage = data.message || data.detail || 'Error al guardar.';
+                console.error('Error guardando datos:', data);
+                setFormMessage(messageId, errorMessage, 'error');
             }
         } catch (error) {
             console.error('Error guardando datos:', error);
@@ -973,7 +975,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (equipoForm) {
             equipoForm.addEventListener('submit', event => {
                 event.preventDefault();
-                submitForm('/api/equipos', {
+                const payload = {
                     cliente_id: Number(document.getElementById('equipo-cliente').value),
                     marca: document.getElementById('equipo-marca').value.trim(),
                     modelo: document.getElementById('equipo-modelo').value.trim(),
@@ -982,7 +984,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     fecha_instalacion: document.getElementById('equipo-fecha').value || null,
                     ubicacion: document.getElementById('equipo-ubicacion').value.trim(),
                     estado: document.getElementById('equipo-estado').value
-                }, 'Equipo creado correctamente.', 'equipo-form', 'equipo-form-message', fetchEquipos);
+                };
+                console.log('[EQUIPO SUBMIT] payload:', payload);
+                submitForm('/api/equipos', payload, 'Equipo creado correctamente.', 'equipo-form', 'equipo-form-message', fetchEquipos);
             });
         }
 
