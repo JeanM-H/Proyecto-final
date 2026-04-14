@@ -185,7 +185,7 @@ router.post('/', verifyToken, async (req, res) => {
 
     // Actualizar estado de la orden
     const ordenUpdates = {
-      estado: fechaFinISO ? 'Completada' : 'En Progreso',
+      estado: fechaFinISO ? 'Completado' : 'En Progreso',
       fecha_completada: fechaFinISO
     };
 
