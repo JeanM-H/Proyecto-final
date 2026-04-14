@@ -124,6 +124,7 @@ router.post('/', verifyToken, async (req, res) => {
       orden_id,
       notas,
       tiempo_dedicado,
+      repuestos_utilizados,
       repuestos,
       fecha_inicio,
       fecha_fin,
@@ -146,6 +147,8 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Orden no encontrada o no asignada a este técnico' });
     }
 
+    const repuestosTexto = repuestos_utilizados ?? repuestos ?? null;
+
     const { data: mantenimiento, error: mantenimientoError } = await supabase
       .from('mantenimientos')
       .insert({
@@ -153,7 +156,7 @@ router.post('/', verifyToken, async (req, res) => {
         tecnico_id: tecnico.id,
         notas,
         tiempo_dedicado,
-        repuestos_utilizados: repuestos || null,
+        repuestos_utilizados: repuestosTexto,
         fecha_inicio: fecha_inicio || new Date().toISOString(),
         fecha_fin: fecha_fin || null,
         observaciones: observaciones || null
@@ -167,12 +170,9 @@ router.post('/', verifyToken, async (req, res) => {
 
     // Actualizar estado de la orden
     const ordenUpdates = {
-      estado: fecha_fin ? 'Completada' : 'En Progreso'
+      estado: fecha_fin ? 'Completada' : 'En Progreso',
+      fecha_completada: fecha_fin || null
     };
-
-    if (fecha_fin) {
-      ordenUpdates.fecha_completada = fecha_fin;
-    }
 
     await supabase
       .from('ordenes_mantenimiento')
