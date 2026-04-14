@@ -788,7 +788,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const equipoSelect = document.getElementById('orden-equipo');
         const equipoEditSelect = document.getElementById('edit-orden-equipo');
 
-        const clienteOptions = options.clientes.map(cliente => `<option value="${cliente.id}">${cliente.empresa || `Cliente ${cliente.id}`}</option>`).join('');
+        const clienteOptions = options.clientes.map(cliente => {
+            const nombreCompleto = cliente.usuario?.nombre ? `${cliente.usuario.nombre} ${cliente.usuario.apellido || ''}`.trim() : '';
+            const displayName = nombreCompleto
+                ? `${cliente.empresa || 'Cliente'} — ${nombreCompleto}`
+                : cliente.empresa || `Cliente ${cliente.id}`;
+            return `<option value="${cliente.id}">${displayName}</option>`;
+        }).join('');
         clienteSelects.forEach(select => {
             if (select) select.innerHTML = '<option value="">Seleccione un cliente</option>' + clienteOptions;
         });
