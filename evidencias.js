@@ -1,5 +1,5 @@
 const supabase = require('./supabaseClient');
-const { verifyToken } = require('./middleware/auth');
+const { verifyTokenString } = require('./middleware/auth');
 
 function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
@@ -47,7 +47,12 @@ module.exports = async (req, res) => {
 
     // Verificar autenticación
     const token = getAuthToken(req);
-    const decoded = token ? verifyToken(token) : null;
+    let decoded;
+    try {
+      decoded = verifyTokenString(token);
+    } catch (error) {
+      return res.status(401).json({ success: false, message: 'No autorizado' });
+    }
 
     if (!decoded) {
       return res.status(401).json({ success: false, message: 'No autorizado' });

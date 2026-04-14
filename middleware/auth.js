@@ -19,6 +19,13 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+const verifyTokenString = (token) => {
+  if (!token) {
+    throw new Error('Token no proporcionado');
+  }
+  return jwt.verify(token, secret);
+};
+
 const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user || !allowedRoles.includes(req.user.rol)) {
@@ -30,4 +37,4 @@ const requireRole = (...allowedRoles) => {
 
 const generateToken = (payload) => jwt.sign(payload, secret, { expiresIn: '24h' });
 
-module.exports = { verifyToken, requireRole, generateToken };
+module.exports = { verifyToken, verifyTokenString, requireRole, generateToken };
