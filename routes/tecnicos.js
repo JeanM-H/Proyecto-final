@@ -45,14 +45,50 @@ router.get('/', verifyToken, requireRole('Administrador'), async (req, res) => {
 
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const userId = req.user?.id;
+    const userEmail = req.user?.email;
+
+    let tecnicoQuery = supabase
       .from('tecnicos')
       .select('id, usuario_id, especialidad, disponible, telefono_contacto, usuario:usuarios(nombre, email)')
-      .eq('usuario_id', req.user.id)
       .maybeSingle();
 
+    if (userId) {
+      tecnicoQuery = tecnicoQuery.eq('usuario_id', userId);
+    }
+
+    let { data, error } = await tecnicoQuery;
+
     if (error) {
-      console.error('Error técnico actual:', error);
+      console.error('Error técnico actual al buscar por usuario_id:', error);
+      return res.status(500).json({ success: false, message: 'Error al obtener datos del técnico' });
+    }
+
+    if (!data && userEmail) {
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('email', userEmail)
+        .maybeSingle();
+
+      if (userError) {
+        console.error('Error buscando usuario por email:', userError);
+      }
+
+      if (userData?.id) {
+        const fallbackResult = await supabase
+          .from('tecnicos')
+          .select('id, usuario_id, especialidad, disponible, telefono_contacto, usuario:usuarios(nombre, email)')
+          .eq('usuario_id', userData.id)
+          .maybeSingle();
+
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
+    }
+
+    if (error) {
+      console.error('Error técnico actual luego de fallback:', error);
       return res.status(500).json({ success: false, message: 'Error al obtener datos del técnico' });
     }
 
