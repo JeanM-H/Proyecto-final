@@ -374,6 +374,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                 const data = await response.json();
                 if (!response.ok || !data.success) {
+                    console.error('Error registrando mantenimiento:', response.status, data);
                     setMessage(data.message || 'Error registrando mantenimiento.', 'error');
                     return;
                 }

@@ -110,7 +110,16 @@ module.exports = async (req, res) => {
         }
       }
 
-      await handler(req, res);
+      const next = err => {
+        if (err) {
+          throw err;
+        }
+      };
+
+      const result = handler.length === 3 ? handler(req, res, next) : handler(req, res);
+      if (result && typeof result.then === 'function') {
+        await result;
+      }
       return;
     } catch (error) {
       console.error('Error en ruta API:', error);
