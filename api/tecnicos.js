@@ -1,5 +1,8 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const supabase = require('../supabaseClient');
+
+const secret = process.env.JWT_SECRET || 'default_secret';
 
 function parseJsonBody(req) {
   return new Promise((resolve, reject) => {
@@ -31,7 +34,7 @@ function generateTemporaryPassword(nombre, apellido) {
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -40,10 +43,65 @@ module.exports = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
   const pathSegments = pathname.split('/').filter(Boolean);
-  const tecnicoId = pathSegments.length >= 3 ? Number(pathSegments[2]) : null;
+  const tecnicoId = pathSegments.length > 0 && !Number.isNaN(Number(pathSegments[0])) ? Number(pathSegments[0]) : null;
 
   if (req.method === 'GET') {
     try {
+      if (pathSegments[0] === 'me') {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          return res.status(401).json({ success: false, message: 'Token no proporcionado' });
+        }
+
+        const token = authHeader.substring(7);
+        let decoded;
+        try {
+          decoded = jwt.verify(token, secret);
+        } catch (error) {
+          return res.status(401).json({ success: false, message: 'Token inválido o expirado' });
+        }
+
+        if (!decoded || !decoded.id) {
+          return res.status(401).json({ success: false, message: 'Token inválido' });
+        }
+
+        const { data, error } = await supabase
+          .from('tecnicos')
+          .select('id, usuario_id, especialidad, disponible, telefono_contacto, created_at, usuario:usuarios(nombre, email)')
+          .eq('usuario_id', decoded.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error tecnico me:', error);
+          return res.status(500).json({ success: false, message: 'Error al obtener datos del técnico' });
+        }
+
+        if (!data) {
+          return res.status(404).json({ success: false, message: 'Técnico no encontrado' });
+        }
+
+        return res.status(200).json({ success: true, tecnico: data });
+      }
+
+      if (tecnicoId) {
+        const { data, error } = await supabase
+          .from('tecnicos')
+          .select('id, usuario_id, especialidad, disponible, telefono_contacto, created_at, usuario:usuarios(nombre, email)')
+          .eq('id', tecnicoId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error tecnico by id:', error);
+          return res.status(500).json({ success: false, message: 'Error al obtener el técnico' });
+        }
+
+        if (!data) {
+          return res.status(404).json({ success: false, message: 'Técnico no encontrado' });
+        }
+
+        return res.status(200).json({ success: true, tecnico: data });
+      }
+
       const { data, error } = await supabase
         .from('tecnicos')
         .select('id, usuario_id, especialidad, disponible, telefono_contacto, created_at, usuario:usuarios(nombre, email)')
