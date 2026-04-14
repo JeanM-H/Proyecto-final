@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                 if (response.ok) {
                     const data = await response.json();
-                    uploadedEvidencias.push(data.data);
+                    uploadedEvidencias.push(data.evidencia || data.data);
                 }
             } catch (error) {
                 console.error('Error subiendo evidencia:', error);
@@ -380,8 +380,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                 // Subir evidencias si las hay
                 if (selectedEvidencias.length > 0) {
+                    const maintenanceId = data.mantenimiento?.id || data.data?.id || data.data?.[0]?.id;
+                    if (!maintenanceId) {
+                        setMessage('No se pudo obtener el ID del mantenimiento para subir evidencias.', 'error');
+                        return;
+                    }
                     setMessage('Mantenimiento registrado. Subiendo evidencias...', 'info');
-                    const maintenanceId = data.data.id || data.data[0]?.id;
                     await uploadEvidencias(maintenanceId);
                 }
 
