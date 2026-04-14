@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             const data = await response.json();
-            if (!response.ok || !data.success) {
+            if (!response.ok || !data || !data.success || !data.tecnico || !data.tecnico.id) {
+                console.error('fetchTechnician response error:', response.status, data);
                 setMessage('No se pudo cargar los datos del técnico.', 'error');
                 return;
             }
