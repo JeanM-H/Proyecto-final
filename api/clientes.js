@@ -52,6 +52,9 @@ function formatClienteUsuario(cliente) {
   };
 }
 
+const jwt = require('jsonwebtoken');
+const jwtSecret = process.env.JWT_SECRET || 'default_secret';
+
 function buildFullName(nombre, apellido, existingFullName = '') {
   const rawName = (nombre || '').trim();
   const rawApellido = (apellido || '').trim();
@@ -80,6 +83,28 @@ function buildFullName(nombre, apellido, existingFullName = '') {
 
   return existingFullName.trim();
 }
+
+function getUserFromToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Token no proporcionado');
+  }
+  const token = authHeader.substring(7);
+  return jwt.verify(token, jwtSecret);
+}
+
+async function getClienteByUserId(userId) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .select('id, usuario_id, empresa, telefono, direccion, ciudad, pais, created_at, usuario:usuarios(nombre, email)')
+    .eq('usuario_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -87,6 +112,149 @@ module.exports = async (req, res) => {
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const pathSegments = url.pathname.split('/').filter(Boolean);
+  const subPath = pathSegments.slice(2);
+  const isMeRoute = subPath[0] === 'me';
+
+  if (isMeRoute) {
+    let user;
+    try {
+      user = getUserFromToken(req);
+    } catch (error) {
+      return res.status(401).json({ success: false, message: 'Token inválido o no proporcionado' });
+    }
+
+    const userId = user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Usuario no encontrado en el token' });
+    }
+
+    if (req.method === 'GET' && subPath.length === 1) {
+      try {
+        const cliente = await getClienteByUserId(userId);
+        if (!cliente) {
+          return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        }
+        return res.status(200).json({ success: true, cliente: formatClienteUsuario(cliente) });
+      } catch (error) {
+        console.error('Error clientes /me:', error);
+        return res.status(500).json({ success: false, message: 'Error al obtener datos de cliente' });
+      }
+    }
+
+    if (req.method === 'GET' && subPath[1] === 'ordenes') {
+      try {
+        const cliente = await getClienteByUserId(userId);
+        if (!cliente) {
+          return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        }
+        const { data, error } = await supabase
+          .from('ordenes_mantenimiento')
+          .select('id, cliente_id, equipo_id, tecnico_id, tipo, descripcion, estado, fecha_programada, fecha_completada, created_at, equipo:equipos_climatizacion(modelo,marca,serial), tecnico:tecnicos(especialidad)')
+          .eq('cliente_id', cliente.id)
+          .order('created_at', { ascending: false });
+        if (error) {
+          console.error('Error clientes /me/ordenes:', error);
+          return res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
+        }
+        return res.status(200).json({ success: true, ordenes: data || [] });
+      } catch (error) {
+        console.error('Error clientes /me/ordenes:', error);
+        return res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
+      }
+    }
+
+    if (req.method === 'GET' && subPath[1] === 'cotizaciones') {
+      try {
+        const cliente = await getClienteByUserId(userId);
+        if (!cliente) {
+          return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        }
+        const { data, error } = await supabase
+          .from('cotizaciones')
+          .select('id, descripcion, monto_estimado, estado, fecha_solicitud, fecha_respuesta, created_at')
+          .eq('cliente_id', cliente.id)
+          .order('created_at', { ascending: false });
+        if (error) {
+          console.error('Error clientes /me/cotizaciones:', error);
+          return res.status(500).json({ success: false, message: 'Error al obtener cotizaciones' });
+        }
+        return res.status(200).json({ success: true, cotizaciones: data || [] });
+      } catch (error) {
+        console.error('Error clientes /me/cotizaciones:', error);
+        return res.status(500).json({ success: false, message: 'Error al obtener cotizaciones' });
+      }
+    }
+
+    if (req.method === 'GET' && subPath[1] === 'equipos') {
+      try {
+        const cliente = await getClienteByUserId(userId);
+        if (!cliente) {
+          return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        }
+        const { data, error } = await supabase
+          .from('equipos_climatizacion')
+          .select('id, marca, modelo, serial, tipo, estado, fecha_instalacion, ubicacion, created_at')
+          .eq('cliente_id', cliente.id)
+          .order('created_at', { ascending: false });
+        if (error) {
+          console.error('Error clientes /me/equipos:', error);
+          return res.status(500).json({ success: false, message: 'Error al obtener equipos' });
+        }
+        return res.status(200).json({ success: true, equipos: data || [] });
+      } catch (error) {
+        console.error('Error clientes /me/equipos:', error);
+        return res.status(500).json({ success: false, message: 'Error al obtener equipos' });
+      }
+    }
+
+    if (req.method === 'POST' && subPath[1] === 'solicitudes') {
+      try {
+        const cliente = await getClienteByUserId(userId);
+        if (!cliente) {
+          return res.status(404).json({ success: false, message: 'Cliente no encontrado' });
+        }
+        const data = await parseJsonBody(req);
+        const { equipo_id, tipo, descripcion, fecha_deseada } = data;
+        if (!equipo_id || !tipo || !descripcion) {
+          return res.status(400).json({ success: false, message: 'Equipo, tipo y descripción son requeridos' });
+        }
+        const { data: equipo, error: equipoError } = await supabase
+          .from('equipos_climatizacion')
+          .select('id')
+          .eq('id', equipo_id)
+          .eq('cliente_id', cliente.id)
+          .maybeSingle();
+        if (equipoError || !equipo) {
+          return res.status(404).json({ success: false, message: 'Equipo no encontrado o no pertenece al cliente' });
+        }
+        const { data: orden, error: ordenError } = await supabase
+          .from('ordenes_mantenimiento')
+          .insert({
+            cliente_id: cliente.id,
+            equipo_id,
+            tipo,
+            descripcion,
+            estado: 'Pendiente',
+            fecha_programada: fecha_deseada || null
+          })
+          .select()
+          .single();
+        if (ordenError) {
+          console.error('Error creando solicitud:', ordenError);
+          return res.status(500).json({ success: false, message: 'Error al crear la solicitud' });
+        }
+        return res.status(201).json({ success: true, message: 'Solicitud de servicio creada correctamente', orden });
+      } catch (error) {
+        console.error('Error clientes /me/solicitudes:', error);
+        return res.status(500).json({ success: false, message: 'Error al crear la solicitud' });
+      }
+    }
+
+    return res.status(404).json({ success: false, message: 'Ruta no encontrada' });
   }
 
   if (req.method === 'GET') {
