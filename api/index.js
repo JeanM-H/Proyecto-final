@@ -95,8 +95,11 @@ module.exports = async (req, res) => {
     try {
       // Ajustar req.url para que el router de Express reciba la ruta relativa correcta.
       const relativePath = pathname.replace(normalizedPath, '') || '/';
-      req.url = relativePath;
-      req.originalUrl = pathname;
+      const isExpressRouter = typeof handler === 'function' && handler.length === 3;
+      if (isExpressRouter) {
+        req.url = relativePath;
+        req.originalUrl = pathname;
+      }
 
       if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
         const contentType = (req.headers['content-type'] || '').toLowerCase();
