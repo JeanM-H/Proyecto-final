@@ -350,6 +350,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             try {
+                const normalizeTimestamp = value => {
+                    if (!value) return null;
+                    const date = new Date(value);
+                    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+                };
+
                 const response = await fetch(`${apiBase}/api/mantenimientos`, {
                     method: 'POST',
                     headers: {
@@ -361,8 +367,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                         notas,
                         tiempo_dedicado: tiempo,
                         repuestos_utilizados: repuestos,
-                        fecha_inicio: fechaInicio || new Date().toISOString(),
-                        fecha_fin: fechaFin || null,
+                        fecha_inicio: normalizeTimestamp(fechaInicio) || new Date().toISOString(),
+                        fecha_fin: normalizeTimestamp(fechaFin),
                         observaciones
                     })
                 });

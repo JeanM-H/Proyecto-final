@@ -113,6 +113,17 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
+function normalizeNumber(value) {
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function normalizeTimestamp(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 router.post('/', verifyToken, async (req, res) => {
   try {
     const tecnico = await getTechnicianByUserId(req.user.id);
@@ -131,7 +142,11 @@ router.post('/', verifyToken, async (req, res) => {
       observaciones
     } = req.body;
 
-    if (!orden_id || !notas || !tiempo_dedicado) {
+    const ordenId = normalizeNumber(orden_id);
+    const fechaInicioISO = normalizeTimestamp(fecha_inicio) || new Date().toISOString();
+    const fechaFinISO = normalizeTimestamp(fecha_fin);
+
+    if (!ordenId || !notas || !tiempo_dedicado) {
       return res.status(400).json({ success: false, message: 'Orden, notas y tiempo dedicado son requeridos' });
     }
 
@@ -152,13 +167,13 @@ router.post('/', verifyToken, async (req, res) => {
     const { data: mantenimiento, error: mantenimientoError } = await supabase
       .from('mantenimientos')
       .insert({
-        orden_id,
+        orden_id: ordenId,
         tecnico_id: tecnico.id,
         notas,
         tiempo_dedicado,
         repuestos_utilizados: repuestosTexto,
-        fecha_inicio: fecha_inicio || new Date().toISOString(),
-        fecha_fin: fecha_fin || null,
+        fecha_inicio: fechaInicioISO,
+        fecha_fin: fechaFinISO,
         observaciones: observaciones || null
       })
       .single();
@@ -170,18 +185,22 @@ router.post('/', verifyToken, async (req, res) => {
 
     // Actualizar estado de la orden
     const ordenUpdates = {
-      estado: fecha_fin ? 'Completada' : 'En Progreso',
-      fecha_completada: fecha_fin || null
+      estado: fechaFinISO ? 'Completada' : 'En Progreso',
+      fecha_completada: fechaFinISO
     };
 
     const { error: ordenUpdateError } = await supabase
       .from('ordenes_mantenimiento')
       .update(ordenUpdates)
-      .eq('id', orden_id);
+      .eq('id', ordenId);
 
     if (ordenUpdateError) {
       console.error('Error actualizando estado de orden:', ordenUpdateError);
-      return res.status(500).json({ success: false, message: 'Mantenimiento creado, pero no se pudo actualizar el estado de la orden' });
+      return res.status(500).json({
+        success: false,
+        message: 'Mantenimiento creado, pero no se pudo actualizar el estado de la orden',
+        detail: ordenUpdateError.message || ordenUpdateError.details || ordenUpdateError
+      });
     }
 
     return res.status(201).json({ success: true, mantenimiento: mantenimiento });
