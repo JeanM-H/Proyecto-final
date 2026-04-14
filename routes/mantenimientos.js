@@ -174,10 +174,15 @@ router.post('/', verifyToken, async (req, res) => {
       fecha_completada: fecha_fin || null
     };
 
-    await supabase
+    const { error: ordenUpdateError } = await supabase
       .from('ordenes_mantenimiento')
       .update(ordenUpdates)
       .eq('id', orden_id);
+
+    if (ordenUpdateError) {
+      console.error('Error actualizando estado de orden:', ordenUpdateError);
+      return res.status(500).json({ success: false, message: 'Mantenimiento creado, pero no se pudo actualizar el estado de la orden' });
+    }
 
     return res.status(201).json({ success: true, mantenimiento: mantenimiento });
   } catch (error) {
