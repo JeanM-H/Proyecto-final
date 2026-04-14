@@ -51,7 +51,7 @@ router.get('/tecnico/:tecnico_id', verifyToken, async (req, res) => {
     const tecnicoId = Number(req.params.tecnico_id);
     const { data, error } = await supabase
       .from('mantenimientos')
-      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at')
       .eq('tecnico_id', tecnicoId)
       .order('created_at', { ascending: false });
 
@@ -72,7 +72,7 @@ router.get('/orden/:orden_id', verifyToken, async (req, res) => {
     const ordenId = Number(req.params.orden_id);
     const { data, error } = await supabase
       .from('mantenimientos')
-      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at')
       .eq('orden_id', ordenId)
       .order('created_at', { ascending: false });
 
@@ -93,7 +93,7 @@ router.get('/:id', verifyToken, async (req, res) => {
     const mantenimientoId = Number(req.params.id);
     const { data, error } = await supabase
       .from('mantenimientos')
-      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at, orden:ordenes_mantenimiento(descripcion,estado), tecnico:tecnicos(usuario:usuarios(nombre, email)), detalle_repuestos(repuesto_id, cantidad, repuesto:repuestos(nombre, precio))')
+      .select('id, orden_id, tecnico_id, notas, tiempo_dedicado, repuestos_utilizados, fecha_inicio, fecha_fin, observaciones, created_at')
       .eq('id', mantenimientoId)
       .maybeSingle();
 
@@ -124,7 +124,7 @@ router.post('/', verifyToken, async (req, res) => {
       orden_id,
       notas,
       tiempo_dedicado,
-      repuestos, // Ahora es array: [{repuesto_id: 1, cantidad: 2}, ...]
+      repuestos,
       fecha_inicio,
       fecha_fin,
       observaciones
@@ -146,7 +146,6 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Orden no encontrada o no asignada a este técnico' });
     }
 
-    // Iniciar transacción
     const { data: mantenimiento, error: mantenimientoError } = await supabase
       .from('mantenimientos')
       .insert({
@@ -154,36 +153,16 @@ router.post('/', verifyToken, async (req, res) => {
         tecnico_id: tecnico.id,
         notas,
         tiempo_dedicado,
-        repuestos_utilizados: null, // Legacy field, ahora usamos detalle_repuestos
+        repuestos_utilizados: repuestos || null,
         fecha_inicio: fecha_inicio || new Date().toISOString(),
         fecha_fin: fecha_fin || null,
-        observaciones: observaciones || null,
-        created_by: req.user.id
+        observaciones: observaciones || null
       })
       .single();
 
     if (mantenimientoError) {
       console.error('Error creando mantenimiento:', mantenimientoError);
       return res.status(500).json({ success: false, message: 'Error al crear mantenimiento' });
-    }
-
-    // Crear entradas en detalle_repuestos si se proporcionaron
-    if (repuestos && Array.isArray(repuestos) && repuestos.length > 0) {
-      const detalleRepuestos = repuestos.map(r => ({
-        mantenimiento_id: mantenimiento.id,
-        repuesto_id: r.repuesto_id,
-        cantidad: r.cantidad,
-        created_at: new Date().toISOString()
-      }));
-
-      const { error: detalleError } = await supabase
-        .from('detalle_repuestos')
-        .insert(detalleRepuestos);
-
-      if (detalleError) {
-        console.error('Error creando detalle repuestos:', detalleError);
-        // No fallar la creación del mantenimiento por esto, pero loggear
-      }
     }
 
     // Actualizar estado de la orden
