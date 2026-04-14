@@ -203,7 +203,7 @@ router.post('/', verifyToken, async (req, res) => {
       });
     }
 
-    return res.status(201).json({ success: true, mantenimiento: mantenimiento });
+    return res.status(201).json({ success: true, mantenimiento: mantenimiento, mantenimiento_id: mantenimiento.id });
   } catch (error) {
     console.error('Error mantenimientos POST:', error);
     return res.status(500).json({ success: false, message: 'Error al registrar mantenimiento' });

@@ -379,6 +379,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 }
 
                 const data = await response.json();
+                console.log('Maintenance create response:', data);
                 if (!response.ok || !data.success) {
                     console.error('Error registrando mantenimiento:', response.status, data);
                     setMessage(data.message || 'Error registrando mantenimiento.', 'error');
@@ -387,7 +388,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                 // Subir evidencias si las hay
                 if (selectedEvidencias.length > 0) {
-                    const maintenanceId = data.mantenimiento?.id || data.data?.id || data.data?.[0]?.id;
+                    const maintenanceId = data.mantenimiento_id || data.mantenimiento?.id || data.id || data.data?.id || data.data?.[0]?.id;
+                    console.log('Extracted maintenanceId:', maintenanceId);
                     if (!maintenanceId) {
                         setMessage('No se pudo obtener el ID del mantenimiento para subir evidencias.', 'error');
                         return;
