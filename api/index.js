@@ -1,6 +1,24 @@
 const fs = require('fs');
 const path = require('path');
 
+const parseJsonBody = req => new Promise((resolve, reject) => {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+  req.on('end', () => {
+    if (!body) {
+      return resolve({});
+    }
+    try {
+      resolve(JSON.parse(body));
+    } catch (error) {
+      reject(error);
+    }
+  });
+  req.on('error', reject);
+});
+
 const routeHandlers = {
   '/api/login': require('./login.js'),
   '/api/register': require('./register.js'),
@@ -79,6 +97,19 @@ module.exports = async (req, res) => {
       const relativePath = pathname.replace(normalizedPath, '') || '/';
       req.url = relativePath;
       req.originalUrl = pathname;
+
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+        const contentType = (req.headers['content-type'] || '').toLowerCase();
+        if (contentType.includes('application/json')) {
+          try {
+            req.body = await parseJsonBody(req);
+          } catch (parseError) {
+            console.error('Error parseando JSON body:', parseError);
+            return res.status(400).json({ success: false, message: 'Cuerpo JSON inválido' });
+          }
+        }
+      }
+
       await handler(req, res);
       return;
     } catch (error) {
